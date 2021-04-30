@@ -16,7 +16,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
+  
+      - name: create google_services.json
+        run: ${{ secrets.GOOGLE_SERVICES }} > ~/app/google-services.json
+      
       - name: Copy CI gradle.properties
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
 

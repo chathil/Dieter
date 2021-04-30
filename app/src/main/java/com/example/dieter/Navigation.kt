@@ -1,0 +1,121 @@
+package com.example.dieter
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.HiltViewModelFactory
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigate
+import androidx.navigation.compose.rememberNavController
+import com.example.dieter.ui.screen.home.HomeScreen
+import com.example.dieter.ui.screen.home.HomeViewModel
+import com.example.dieter.ui.screen.welcome.WelcomeScreen
+import com.example.dieter.ui.screen.welcome.WelcomeViewModel
+
+/**
+ * Destinations used in the ([DieterApp]).
+ */
+object MainDestinations {
+    const val WELCOME_ROUTE = "welcome"
+    const val AUTH_ROUTE = "auth"
+    const val HOME_ROUTE = "home"
+    const val ACCOUNT_ROUTE = "account"
+//    const val COURSE_DETAIL_ID_KEY = "courseId" /* For reference */
+}
+
+@Composable
+fun NavGraph(
+    modifier: Modifier = Modifier,
+    finishActivity: () -> Unit = {},
+    navController: NavHostController = rememberNavController(),
+    startDestination: String = MainDestinations.HOME_ROUTE,
+    showWelcomeInitially: Boolean = true
+) {
+    val welcomeFinished = remember(showWelcomeInitially) {
+        mutableStateOf(!showWelcomeInitially)
+    }
+
+    val actions = remember(navController) { MainActions(navController) }
+
+    NavHost(
+        navController = navController,
+        startDestination = if (showWelcomeInitially) MainDestinations.WELCOME_ROUTE else startDestination
+    ) {
+        composable(MainDestinations.WELCOME_ROUTE) {
+            // Intercept back in Welcome: make it finish the activity
+            BackHandler {
+                finishActivity()
+            }
+            val welcomeViewModel: WelcomeViewModel = viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
+            WelcomeScreen(
+                welcomeViewModel = welcomeViewModel,
+                welcomeFinished = {
+                    welcomeFinished.value = true
+                    actions.welcomeFinished()
+                },
+                navigateToHome = {
+                    actions.welcomeToHome()
+                }
+            )
+        }
+
+        composable(MainDestinations.HOME_ROUTE) {
+            val homeViewModel: HomeViewModel = viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
+            HomeScreen(homeViewModel)
+        }
+
+        // Reference for navigation with parameters
+
+//        navigation(
+//            route = MainDestinations.COURSES_ROUTE,
+//            startDestination = CourseTabs.FEATURED.route
+//        ) {
+//            courses(
+//                onCourseSelected = actions.selectCourse,
+//                onboardingComplete = onboardingComplete,
+//                navController = navController,
+//                modifier = modifier
+//            )
+//        }
+//
+//        composable(
+//            "${MainDestinations.COURSE_DETAIL_ROUTE}/{$COURSE_DETAIL_ID_KEY}",
+//            arguments = listOf(
+//                navArgument(COURSE_DETAIL_ID_KEY) { type = NavType.LongType }
+//            )
+//        ) { backStackEntry ->
+//            val arguments = requireNotNull(backStackEntry.arguments)
+//            CourseDetails(
+//                courseId = arguments.getLong(COURSE_DETAIL_ID_KEY),
+//                selectCourse = actions.selectCourse,
+//                upPress = actions.upPress
+//            )
+//        }
+    }
+}
+
+/**
+ * Models the navigation actions in the app.
+ */
+class MainActions(navController: NavHostController) {
+    val welcomeFinished: () -> Unit = {
+        navController.popBackStack()
+    }
+    val welcomeToHome: () -> Unit = {
+        navController.navigate(MainDestinations.HOME_ROUTE)
+    }
+
+    // For reference
+//    val selectCourse: (Long) -> Unit = { courseId: Long ->
+//        navController.navigate("${MainDestinations.COURSE_DETAIL_ROUTE}/$courseId")
+//    }
+    val upPress: () -> Unit = {
+        navController.navigateUp()
+    }
+}

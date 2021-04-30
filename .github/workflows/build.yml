@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
   
-      - name: create google_services.json
+      - name: Create google_services.json
         run: 'echo "$GOOGLE_SERVICES" > app/google-services.json'
         shell: bash
         env:
@@ -59,6 +59,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Create google_services.json
+        run: 'echo "$GOOGLE_SERVICES" > app/google-services.json'
+        shell: bash
+        env:
+          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
 
       - name: Copy CI gradle.properties
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties

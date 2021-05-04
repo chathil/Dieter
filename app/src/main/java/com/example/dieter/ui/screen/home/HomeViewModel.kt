@@ -27,15 +27,15 @@ class HomeViewModel @Inject constructor(
     )
 
     val bodyWeightEntries = listOf(
-        BodyWeightModel(40, 70, Date(1618512113000)),
-        BodyWeightModel(40, 70, Date(1618598513000)),
-        BodyWeightModel(40, 70, Date(1618684913000)),
-        BodyWeightModel(40, 70, Date(1618771313000)),
-        BodyWeightModel(40, 70, Date(1618944113000)),
-        BodyWeightModel(40, 70, Date(1619030513000)),
-        BodyWeightModel(40, 70, Date(1619116913000)),
-        BodyWeightModel(40, 70, Date(1619203313000)),
-        BodyWeightModel(40, 70, Date(1619289713000))
+        BodyWeightModel(56, 70, Date(1618512113000)),
+        BodyWeightModel(60, 70, Date(1618598513000)),
+        BodyWeightModel(61, 70, Date(1618684913000)),
+        BodyWeightModel(67, 70, Date(1618771313000)),
+        BodyWeightModel(70, 70, Date(1618944113000)),
+        BodyWeightModel(70, 70, Date(1619030513000)),
+        BodyWeightModel(70, 70, Date(1619116913000)),
+        BodyWeightModel(70, 70, Date(1619203313000)),
+        BodyWeightModel(69, 70, Date(1619289713000))
     )
 
     companion object {

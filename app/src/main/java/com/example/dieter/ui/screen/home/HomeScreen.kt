@@ -1,7 +1,9 @@
 package com.example.dieter.ui.screen.home
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -97,6 +99,15 @@ fun HomeScreen(
 
         IconButton(onClick = { /*TODO*/ }) {
             Icon(imageVector = Icons.Filled.ExpandMore, contentDescription = "expand")
+        }
+        HomeSection(title = "Body weight entry", modifier = Modifier.padding(horizontal = 16.dp))
+        Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+            Spacer(Modifier.size(16.dp))
+            homeViewModel.bodyWeightEntries.forEach {
+                BodyWeightBar(weightModel = it)
+                Spacer(Modifier.size(8.dp))
+            }
+            Spacer(Modifier.size(16.dp))
         }
     }
 }
@@ -231,9 +242,14 @@ fun BurnCaloriesButton(modifier: Modifier = Modifier) {
 
 @Composable
 fun BodyWeightBar(weightModel: BodyWeightModel, modifier: Modifier = Modifier) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Box(modifier = Modifier.height(202.dp), contentAlignment = Alignment.BottomCenter) {
-            DieterVerticalBarChart(progress = .7f)
+            Log.d("BodyWeightBar", " ${(weightModel.current / weightModel.target.toFloat())}")
+            DieterVerticalBarChart(progress = (weightModel.current / weightModel.target.toFloat()))
         }
         Spacer(Modifier.size(8.dp))
         Text("12/10", style = MaterialTheme.typography.caption)

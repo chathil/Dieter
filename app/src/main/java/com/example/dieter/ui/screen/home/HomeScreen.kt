@@ -1,6 +1,7 @@
 package com.example.dieter.ui.screen.home
 
-import android.util.Log
+import android.annotation.SuppressLint
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,11 +39,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.dieter.R
 import com.example.dieter.data.source.domain.BodyWeightModel
+import com.example.dieter.data.source.domain.FoodType
 import com.example.dieter.data.source.domain.NutrientModel
+import com.example.dieter.data.source.domain.TodaysFood
 import com.example.dieter.ui.component.AppNameHeader
 import com.example.dieter.ui.component.DieterDefaultButton
 import com.example.dieter.ui.component.DieterProgressBar
@@ -109,11 +116,17 @@ fun HomeScreen(
             }
             Spacer(Modifier.size(16.dp))
         }
+        Spacer(Modifier.size(12.dp))
+        HomeSection(title = "Food eaten today", modifier = Modifier.padding(horizontal = 16.dp))
+        homeViewModel.todaysFoods.forEach {
+            FoodCard(it, modifier = Modifier.padding(horizontal = 16.dp))
+            Spacer(Modifier.size(8.dp))
+        }
     }
 }
 
 @Composable
-fun HomeAppBar(modifier: Modifier = Modifier) {
+private fun HomeAppBar(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -128,7 +141,7 @@ fun HomeAppBar(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun TrialBanner(modifier: Modifier = Modifier) {
+private fun TrialBanner(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -152,7 +165,7 @@ fun TrialBanner(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun HomeSection(title: String, modifier: Modifier = Modifier) {
+private fun HomeSection(title: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -164,7 +177,7 @@ fun HomeSection(title: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun NutrientBar(nutrient: NutrientModel, modifier: Modifier = Modifier) {
+private fun NutrientBar(nutrient: NutrientModel, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -185,7 +198,7 @@ fun NutrientBar(nutrient: NutrientModel, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun BurnCaloriesButton(modifier: Modifier = Modifier) {
+private fun BurnCaloriesButton(modifier: Modifier = Modifier) {
     Button(
         onClick = { /*TODO*/ },
         modifier = modifier
@@ -241,18 +254,63 @@ fun BurnCaloriesButton(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun BodyWeightBar(weightModel: BodyWeightModel, modifier: Modifier = Modifier) {
+private fun BodyWeightBar(weightModel: BodyWeightModel, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(modifier = Modifier.height(202.dp), contentAlignment = Alignment.BottomCenter) {
-            Log.d("BodyWeightBar", " ${(weightModel.current / weightModel.target.toFloat())}")
             DieterVerticalBarChart(progress = (weightModel.current / weightModel.target.toFloat()))
         }
         Spacer(Modifier.size(8.dp))
         Text("12/10", style = MaterialTheme.typography.caption)
+    }
+}
+
+@SuppressLint("DefaultLocale")
+@Composable
+@OptIn(kotlin.ExperimentalStdlibApi::class)
+private fun FoodCard(food: TodaysFood, modifier: Modifier = Modifier) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .defaultMinSize(38.dp, 38.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colors.primary)
+        ) {
+            Text(
+                "12.10", style = MaterialTheme.typography.caption, modifier = Modifier.padding(4.dp)
+            )
+        }
+        Spacer(Modifier.size(8.dp))
+        Image(
+            painter = painterResource(id = R.drawable.fake_food),
+            contentScale = ContentScale.Crop,
+            contentDescription = "food picture",
+            modifier = Modifier
+                .size(64.dp)
+                .background(Color.Transparent, DieterShapes.small)
+                .clip(DieterShapes.small)
+        )
+        Spacer(Modifier.size(8.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                food.type.toString().lowercase().capitalize(),
+                style = MaterialTheme.typography.subtitle2
+            )
+            Text("${food.cal} kcal", style = MaterialTheme.typography.caption)
+        }
     }
 }
 
@@ -309,7 +367,61 @@ fun BurnCaloriesButtonPreview() {
 fun BodyWeightEntryPreview() {
     DieterTheme {
         Surface {
-            BodyWeightBar(BodyWeightModel(67, 70, Date()))
+            Row {
+                Spacer(Modifier.size(8.dp))
+                BodyWeightBar(BodyWeightModel(50, 70, Date()))
+                Spacer(Modifier.size(8.dp))
+                BodyWeightBar(BodyWeightModel(55, 70, Date()))
+                Spacer(Modifier.size(8.dp))
+                BodyWeightBar(BodyWeightModel(60, 70, Date()))
+                Spacer(Modifier.size(8.dp))
+                BodyWeightBar(BodyWeightModel(61, 70, Date()))
+                Spacer(Modifier.size(8.dp))
+                BodyWeightBar(BodyWeightModel(67, 70, Date()))
+                Spacer(Modifier.size(8.dp))
+                BodyWeightBar(BodyWeightModel(70, 70, Date()))
+                Spacer(Modifier.size(8.dp))
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun FoodCardPreview() {
+    DieterTheme {
+        Surface {
+            Column(modifier = Modifier.padding(16.dp)) {
+                FoodCard(
+                    TodaysFood(
+                        FoodType.BREAKFAST,
+                        "Egg Sandwich",
+                        "fake_food.jpg",
+                        15,
+                        Date(1619289713000)
+                    ),
+                )
+                Spacer(Modifier.size(8.dp))
+                FoodCard(
+                    TodaysFood(
+                        FoodType.BREAKFAST,
+                        "Egg Sandwich",
+                        "fake_food.jpg",
+                        15,
+                        Date(1619289713000)
+                    ),
+                )
+                Spacer(Modifier.size(8.dp))
+                FoodCard(
+                    TodaysFood(
+                        FoodType.BREAKFAST,
+                        "Egg Sandwich",
+                        "fake_food.jpg",
+                        15,
+                        Date(1619289713000)
+                    ),
+                )
+            }
         }
     }
 }

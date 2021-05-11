@@ -11,7 +11,7 @@ object Libs {
     const val kotlinxSerialization = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0"
     const val kotlinxCollections = "org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.3.4"
     const val hiltNavigationCompose = "androidx.hilt:hilt-navigation-compose:1.0.0-alpha01"
-    const val coilGif = "io.coil-kt:coil-gif:1.2.0"
+    const val playServicesAuth = "com.google.android.gms:play-services-auth:19.0.0"
 
     object Hilt {
         private const val version = "2.33-beta"
@@ -41,6 +41,7 @@ object Libs {
         const val core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$version"
         const val android = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$version"
         const val test = "org.jetbrains.kotlinx:kotlinx-coroutines-test:$version"
+        const val playServices = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:$version"
     }
 
     object Accompanist {
@@ -56,6 +57,8 @@ object Libs {
         const val bom = "com.google.firebase:firebase-bom:27.0.0"
         const val analyticsKtx = "com.google.firebase:firebase-analytics-ktx"
         const val databaseKtx = "com.google.firebase:firebase-database-ktx"
+        const val authKtx = "com.google.firebase:firebase-auth-ktx"
+
     }
 
     object AndroidX {

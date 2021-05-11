@@ -1,7 +1,6 @@
 package com.example.dieter.ui.screen.home
 
 import androidx.lifecycle.ViewModel
-import com.bumptech.glide.load.engine.Resource
 import com.example.dieter.data.source.DieterRepository
 import com.example.dieter.data.source.EdamamRepository
 import com.example.dieter.data.source.domain.BodyWeightModel

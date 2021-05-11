@@ -6,5 +6,4 @@ import javax.inject.Inject
 
 class CalculateNutrientsViewModel @Inject constructor(
     private val dieterRepository: DieterRepository
-): ViewModel() {
-}
+) : ViewModel()

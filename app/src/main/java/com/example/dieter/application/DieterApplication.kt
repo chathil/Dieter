@@ -9,10 +9,8 @@ class DieterApplication : Application() {
         instance = this
     }
 
-
-
-   companion object {
-       private var instance: DieterApplication? = null
-       fun applicationContext() = instance
-   }
+    companion object {
+        private var instance: DieterApplication? = null
+        fun applicationContext() = instance
+    }
 }

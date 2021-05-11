@@ -129,7 +129,8 @@ fun WelcomeScreen(
                                 loginState = data
                             }
                         }
-                    })
+                    }
+                )
             }
         }
     }
@@ -138,29 +139,29 @@ fun WelcomeScreen(
 @Composable
 fun GlideGifImage(request: Int) {
     val requestManager = Glide.with(LocalContext.current).addDefaultRequestListener(object :
-        RequestListener<Any> {
-        override fun onLoadFailed(
-            e: GlideException?,
-            model: Any?,
-            target: Target<Any>?,
-            isFirstResource: Boolean
-        ): Boolean {
-            return false
-        }
-
-        override fun onResourceReady(
-            resource: Any?,
-            model: Any?,
-            target: Target<Any>?,
-            dataSource: DataSource?,
-            isFirstResource: Boolean
-        ): Boolean {
-            if (resource is GifDrawable) {
-                resource.setLoopCount(1)
+            RequestListener<Any> {
+            override fun onLoadFailed(
+                e: GlideException?,
+                model: Any?,
+                target: Target<Any>?,
+                isFirstResource: Boolean
+            ): Boolean {
+                return false
             }
-            return false
-        }
-    })
+
+            override fun onResourceReady(
+                resource: Any?,
+                model: Any?,
+                target: Target<Any>?,
+                dataSource: DataSource?,
+                isFirstResource: Boolean
+            ): Boolean {
+                if (resource is GifDrawable) {
+                    resource.setLoopCount(1)
+                }
+                return false
+            }
+        })
 
     Surface(
         Modifier

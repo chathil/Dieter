@@ -12,13 +12,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @InstallIn(SingletonComponent::class)
@@ -53,12 +49,12 @@ class DieterFirebaseAuth @Inject constructor(
                 offer(DataState.Success(it.user))
             close()
         }.addOnFailureListener {
-            if(!isClosedForSend)
+            if (!isClosedForSend)
                 offer(DataState.Error(it.message!!))
             close(it)
         }
         awaitClose {
-            Log.e(TAG, "authWithGoogle: CLOSE", )
+            Log.e(TAG, "authWithGoogle: CLOSE",)
         }
     }
 
@@ -70,6 +66,3 @@ class DieterFirebaseAuth @Inject constructor(
         private val TAG = DieterFirebaseAuth::class.java.simpleName
     }
 }
-
-
-

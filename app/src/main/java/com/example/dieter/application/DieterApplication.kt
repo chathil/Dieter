@@ -5,7 +5,14 @@ import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class DieterApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
+    init {
+        instance = this
     }
+
+
+
+   companion object {
+       private var instance: DieterApplication? = null
+       fun applicationContext() = instance
+   }
 }

@@ -13,29 +13,36 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigate
 import androidx.navigation.compose.rememberNavController
+import com.example.dieter.ui.screen.calculate.nutrients.CalculateNutrientsScreen
+import com.example.dieter.ui.screen.calculate.nutrients.CalculateNutrientsViewModel
 import com.example.dieter.ui.screen.home.HomeScreen
 import com.example.dieter.ui.screen.home.HomeViewModel
 import com.example.dieter.ui.screen.welcome.WelcomeScreen
 import com.example.dieter.ui.screen.welcome.WelcomeViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.InternalCoroutinesApi
 
 /**
  * Destinations used in the ([DieterApp]).
  */
 object MainDestinations {
     const val WELCOME_ROUTE = "welcome"
-    const val AUTH_ROUTE = "auth"
     const val HOME_ROUTE = "home"
     const val ACCOUNT_ROUTE = "account"
+    const val CALCULATE_NUTRIENTS_ROUTE = "calculate_nutrients"
 //    const val COURSE_DETAIL_ID_KEY = "courseId" /* For reference */
 }
 
+@OptIn(InternalCoroutinesApi::class)
 @Composable
 fun NavGraph(
     modifier: Modifier = Modifier,
     finishActivity: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
     startDestination: String = MainDestinations.HOME_ROUTE,
-    showWelcomeInitially: Boolean = true
+    showWelcomeInitially: Boolean = Firebase.auth.currentUser == null
 ) {
     val welcomeFinished = remember(showWelcomeInitially) {
         mutableStateOf(!showWelcomeInitially)
@@ -49,10 +56,8 @@ fun NavGraph(
     ) {
         composable(MainDestinations.WELCOME_ROUTE) {
             // Intercept back in Welcome: make it finish the activity
-            BackHandler {
-                finishActivity()
-            }
-            val welcomeViewModel: WelcomeViewModel = viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
+            val welcomeViewModel: WelcomeViewModel =
+                viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
             WelcomeScreen(
                 welcomeViewModel = welcomeViewModel,
                 welcomeFinished = {
@@ -66,8 +71,21 @@ fun NavGraph(
         }
 
         composable(MainDestinations.HOME_ROUTE) {
-            val homeViewModel: HomeViewModel = viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
+            BackHandler {
+                finishActivity()
+            }
+            val homeViewModel: HomeViewModel =
+                viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
             HomeScreen(homeViewModel)
+        }
+
+        composable(MainDestinations.CALCULATE_NUTRIENTS_ROUTE) {
+            val calculateNutrientsViewModel: CalculateNutrientsViewModel = viewModel(
+                factory = HiltViewModelFactory(
+                    LocalContext.current, it
+                )
+            )
+            CalculateNutrientsScreen(calculateNutrientsViewModel)
         }
 
         // Reference for navigation with parameters
@@ -109,6 +127,9 @@ class MainActions(navController: NavHostController) {
     }
     val welcomeToHome: () -> Unit = {
         navController.navigate(MainDestinations.HOME_ROUTE)
+    }
+    val calculateNutrients: () -> Unit = {
+        navController.navigate(MainDestinations.CALCULATE_NUTRIENTS_ROUTE)
     }
 
     // For reference

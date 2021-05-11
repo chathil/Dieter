@@ -1,5 +1,9 @@
 package com.example.dieter.ui.screen.welcome
 
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -27,10 +31,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,18 +48,28 @@ import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.example.dieter.R
+import com.example.dieter.application.DieterApplication
 import com.example.dieter.ui.component.AppNameHeader
 import com.example.dieter.ui.component.DieterDefaultButton
 import com.example.dieter.ui.theme.AlphaNearTransparent
 import com.example.dieter.ui.theme.DieterTheme
 import com.example.dieter.utils.LocalSysUiController
+import com.example.dieter.utils.collect
+import com.example.dieter.vo.DataState
 import com.google.accompanist.glide.rememberGlidePainter
 import com.google.accompanist.insets.LocalWindowInsets
 import com.google.accompanist.insets.toPaddingValues
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.launch
 
+@InternalCoroutinesApi
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun WelcomeScreen(
@@ -67,7 +83,7 @@ fun WelcomeScreen(
         )
     )
     val pagerState = rememberPagerState(pageCount = 3)
-
+    var loginState by remember { mutableStateOf<DataState<FirebaseUser>>(DataState.Empty) }
     Scaffold {
         Column(
             modifier = Modifier
@@ -95,8 +111,25 @@ fun WelcomeScreen(
                         2 -> SlideThree(page = currentPage)
                     }
                 }
+                when (loginState) {
+                    is DataState.Success -> navigateToHome()
+                    is DataState.Error -> Log.e("WelcomeScreen", "WelcomeScreen: $loginState")
+                    is DataState.Loading -> Log.i("WelcomeScreen", "WelcomeScreen: Loading...")
+                    is DataState.Empty -> Log.i("WelcomeScreen", "WelcomeScreen: Loading...")
+                }
+
                 /* TODO: https://google.github.io/accompanist/pager/ */
-                SlideNavigation(currentPage = currentPage, navigateToHome = navigateToHome)
+                val scope = rememberCoroutineScope()
+                SlideNavigation(
+                    currentPage = currentPage,
+                    navigateToHome = navigateToHome,
+                    login = { token ->
+                        scope.launch {
+                            welcomeViewModel.authWithGoogle(token).collect { data ->
+                                loginState = data
+                            }
+                        }
+                    })
             }
         }
     }
@@ -105,29 +138,29 @@ fun WelcomeScreen(
 @Composable
 fun GlideGifImage(request: Int) {
     val requestManager = Glide.with(LocalContext.current).addDefaultRequestListener(object :
-            RequestListener<Any> {
-            override fun onLoadFailed(
-                e: GlideException?,
-                model: Any?,
-                target: Target<Any>?,
-                isFirstResource: Boolean
-            ): Boolean {
-                return false
-            }
+        RequestListener<Any> {
+        override fun onLoadFailed(
+            e: GlideException?,
+            model: Any?,
+            target: Target<Any>?,
+            isFirstResource: Boolean
+        ): Boolean {
+            return false
+        }
 
-            override fun onResourceReady(
-                resource: Any?,
-                model: Any?,
-                target: Target<Any>?,
-                dataSource: DataSource?,
-                isFirstResource: Boolean
-            ): Boolean {
-                if (resource is GifDrawable) {
-                    resource.setLoopCount(1)
-                }
-                return false
+        override fun onResourceReady(
+            resource: Any?,
+            model: Any?,
+            target: Target<Any>?,
+            dataSource: DataSource?,
+            isFirstResource: Boolean
+        ): Boolean {
+            if (resource is GifDrawable) {
+                resource.setLoopCount(1)
             }
-        })
+            return false
+        }
+    })
 
     Surface(
         Modifier
@@ -244,7 +277,8 @@ fun SlideThree(modifier: Modifier = Modifier, page: Int = 2) {
 fun SlideNavigation(
     modifier: Modifier = Modifier,
     currentPage: Int = 0,
-    navigateToHome: () -> Unit = {}
+    navigateToHome: () -> Unit = {},
+    login: (String) -> Unit
 ) {
     Row(
         modifier = modifier
@@ -257,9 +291,39 @@ fun SlideNavigation(
         TextButton(onClick = navigateToHome) {
             Text("Skip")
         }
+        val launcher =
+            rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(it.data)
+                try {
+                    val account = task.getResult(ApiException::class.java)!!
+                    Log.d("LoginPopup", "firebaseAuthWithGoogle:" + account.id)
+                    // it's save to use bang operator here
+                    login(account.idToken!!)
+                } catch (e: ApiException) {
+                    Log.w("LoginPopup", "Google sign in failed", e)
+                    // temporary error message
+                    Toast.makeText(
+                        DieterApplication.applicationContext(),
+                        "Something went wrong",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(stringResource(id = R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+
         OutlinedButton(
             onClick = when (currentPage) {
-                2 -> navigateToHome
+                2 -> {
+                    {
+                        val googleSignInClient =
+                            DieterApplication.applicationContext()
+                                ?.let { GoogleSignIn.getClient(it, gso) }
+                        launcher.launch(googleSignInClient?.signInIntent)
+                    }
+                }
                 else -> {
                     {}
                 }
@@ -300,6 +364,6 @@ fun SlidePreview() {
 @Composable
 fun SlideNavigationPreview() {
     DieterTheme {
-        SlideNavigation()
+        SlideNavigation(login = {})
     }
 }

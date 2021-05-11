@@ -61,10 +61,12 @@ dependencies {
     implementation(Libs.kotlinxSerialization)
     implementation(Libs.kotlinxCollections)
     implementation(Libs.hiltNavigationCompose)
+    implementation(Libs.playServicesAuth)
 
     implementation(Libs.Coroutines.core)
     implementation(Libs.Coroutines.android)
     implementation(Libs.Coroutines.test)
+    implementation(Libs.Coroutines.playServices)
 
     implementation(Libs.AndroidX.coreKtx)
     implementation(Libs.AndroidX.appcompat)
@@ -89,6 +91,7 @@ dependencies {
     implementation(platform(Libs.Firebase.bom))
     implementation(Libs.Firebase.analyticsKtx)
     implementation(Libs.Firebase.databaseKtx)
+    implementation(Libs.Firebase.authKtx)
 
     kapt(Libs.Hilt.hiltCompiler)
     implementation(Libs.Hilt.hiltAndroid)

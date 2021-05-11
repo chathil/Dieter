@@ -1,6 +1,7 @@
 package com.example.dieter.ui.screen.home
 
 import androidx.lifecycle.ViewModel
+import com.bumptech.glide.load.engine.Resource
 import com.example.dieter.data.source.DieterRepository
 import com.example.dieter.data.source.EdamamRepository
 import com.example.dieter.data.source.domain.BodyWeightModel
@@ -16,6 +17,7 @@ class HomeViewModel @Inject constructor(
     private val dieterRepository: DieterRepository,
     edamamRepository: EdamamRepository
 ) : ViewModel() {
+
     val nutrients = listOf(
         NutrientModel("Calorie", 1437, 2000, "kcal"),
         NutrientModel("Carbs", 27, 19, "g"),

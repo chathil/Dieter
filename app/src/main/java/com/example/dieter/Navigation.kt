@@ -75,7 +75,10 @@ fun NavGraph(
             }
             val homeViewModel: HomeViewModel =
                 viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
-            HomeScreen(homeViewModel)
+            HomeScreen(
+                homeViewModel = homeViewModel,
+                navigateToCalculateNutrients = actions.calculateNutrients
+            )
         }
 
         composable(MainDestinations.CALCULATE_NUTRIENTS_ROUTE) {

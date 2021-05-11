@@ -1,6 +1,7 @@
 package com.example.dieter.ui.screen.home
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,9 +33,16 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Timeline
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,64 +72,77 @@ import java.util.Date
 
 @Composable
 fun HomeScreen(
-    homeViewModel: HomeViewModel = viewModel()
+    homeViewModel: HomeViewModel = viewModel(),
+    navigateToCalculateNutrients: () -> Unit = {},
+    reloadHome: () -> Unit = {}
 ) {
     LocalSysUiController.current.setStatusBarColor(
         MaterialTheme.colors.background.copy(
             AlphaNearTransparent
         )
     )
-    val scrollState = rememberScrollState()
-    Column(
-        modifier = Modifier
-            .statusBarsPadding()
-            .fillMaxSize()
-            .verticalScroll(scrollState),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.size(16.dp))
-        HomeAppBar(modifier = Modifier.padding(horizontal = 16.dp))
-        Spacer(Modifier.size(12.dp))
-        TrialBanner(modifier = Modifier.padding(horizontal = 16.dp))
-        Spacer(Modifier.size(12.dp))
-        HomeSection(title = "Today's summary", modifier = Modifier.padding(horizontal = 16.dp))
-        Spacer(Modifier.size(22.dp))
-        homeViewModel.nutrients.subList(0, 5).forEachIndexed { idx, nutrient ->
-            NutrientBar(
-                nutrient = NutrientModel(
-                    nutrient.name,
-                    nutrient.current,
-                    nutrient.of,
-                    nutrient.unit
-                ),
+    Box(contentAlignment = Alignment.BottomCenter) {
+        val scrollState = rememberScrollState()
+        Column(
+            modifier = Modifier
+                .statusBarsPadding()
+                .fillMaxSize()
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.size(16.dp))
+            HomeAppBar(modifier = Modifier.padding(horizontal = 16.dp))
+            Spacer(Modifier.size(12.dp))
+            TrialBanner(modifier = Modifier.padding(horizontal = 16.dp))
+            Spacer(Modifier.size(12.dp))
+            HomeSection(title = "Today's summary", modifier = Modifier.padding(horizontal = 16.dp))
+            Spacer(Modifier.size(22.dp))
+            homeViewModel.nutrients.subList(0, 5).forEachIndexed { idx, nutrient ->
+                NutrientBar(
+                    nutrient = NutrientModel(
+                        nutrient.name,
+                        nutrient.current,
+                        nutrient.of,
+                        nutrient.unit
+                    ),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                if (idx == 0) {
+                    Spacer(Modifier.size(12.dp))
+                    BurnCaloriesButton(modifier = Modifier.padding(horizontal = 16.dp))
+                }
+                Spacer(Modifier.size(12.dp))
+            }
+
+            IconButton(onClick = { /*TODO*/ }) {
+                Icon(imageVector = Icons.Filled.ExpandMore, contentDescription = "expand")
+            }
+            HomeSection(
+                title = "Body weight entry",
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
-            if (idx == 0) {
-                Spacer(Modifier.size(12.dp))
-                BurnCaloriesButton(modifier = Modifier.padding(horizontal = 16.dp))
+            Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                Spacer(Modifier.size(16.dp))
+                homeViewModel.bodyWeightEntries.forEach {
+                    BodyWeightBar(weightModel = it)
+                    Spacer(Modifier.size(8.dp))
+                }
+                Spacer(Modifier.size(16.dp))
             }
             Spacer(Modifier.size(12.dp))
-        }
-
-        IconButton(onClick = { /*TODO*/ }) {
-            Icon(imageVector = Icons.Filled.ExpandMore, contentDescription = "expand")
-        }
-        HomeSection(title = "Body weight entry", modifier = Modifier.padding(horizontal = 16.dp))
-        Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-            Spacer(Modifier.size(16.dp))
-            homeViewModel.bodyWeightEntries.forEach {
-                BodyWeightBar(weightModel = it)
+            HomeSection(title = "Food eaten today", modifier = Modifier.padding(horizontal = 16.dp))
+            homeViewModel.todaysFoods.forEach {
+                FoodCard(it, modifier = Modifier.padding(horizontal = 16.dp))
                 Spacer(Modifier.size(8.dp))
             }
-            Spacer(Modifier.size(16.dp))
+            Spacer(Modifier.size(72.dp))
         }
-        Spacer(Modifier.size(12.dp))
-        HomeSection(title = "Food eaten today", modifier = Modifier.padding(horizontal = 16.dp))
-        homeViewModel.todaysFoods.forEach {
-            FoodCard(it, modifier = Modifier.padding(horizontal = 16.dp))
-            Spacer(Modifier.size(8.dp))
-        }
+        BottomBar(
+            navigateHome = reloadHome,
+            navigateToCalculateNutrients = navigateToCalculateNutrients,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 36.dp)
+        )
     }
 }
 
@@ -270,7 +291,7 @@ private fun BodyWeightBar(weightModel: BodyWeightModel, modifier: Modifier = Mod
 
 @SuppressLint("DefaultLocale")
 @Composable
-@OptIn(kotlin.ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class)
 private fun FoodCard(food: TodaysFood, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -310,6 +331,74 @@ private fun FoodCard(food: TodaysFood, modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.subtitle2
             )
             Text("${food.cal} kcal", style = MaterialTheme.typography.caption)
+        }
+    }
+}
+
+@Composable
+private fun BottomBar(
+    modifier: Modifier = Modifier,
+    initiallySelected: Int = 0,
+    navigateHome: () -> Unit = {},
+    navigateToCalculateNutrients: () -> Unit = {},
+    navigateToAccount: () -> Unit = {}
+) {
+    var selected by remember { mutableStateOf(initiallySelected) }
+    Surface(
+        elevation = 8.dp,
+        shape = DieterShapes.medium,
+        border = BorderStroke(2.dp, MaterialTheme.colors.primary),
+        modifier = modifier.padding(horizontal = 8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(72.dp)
+                .background(MaterialTheme.colors.background)
+        ) {
+            val selectedColor = MaterialTheme.colors.primary
+            IconButton(
+                onClick = {
+                    selected = 0
+                    navigateHome()
+                }
+            ) {
+                val homeIcon = Icons.Filled.Home
+                Icon(
+                    imageVector = homeIcon,
+                    tint = if (selected == 0) selectedColor else homeIcon.tintColor,
+                    contentDescription = "home"
+                )
+            }
+            IconButton(
+                onClick = {
+                    selected = 1
+                    navigateToCalculateNutrients()
+                }
+            ) {
+                val eatIcon = Icons.Filled.RestaurantMenu
+                Icon(
+                    imageVector = eatIcon,
+                    tint = if (selected == 1) selectedColor else eatIcon.tintColor,
+                    contentDescription = "take a picture",
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+            IconButton(
+                onClick = {
+                    selected = 2
+                    navigateToAccount()
+                }
+            ) {
+                val faceIcon = Icons.Filled.Face
+                Icon(
+                    imageVector = faceIcon,
+                    tint = if (selected == 2) selectedColor else faceIcon.tintColor,
+                    contentDescription = "account"
+                )
+            }
         }
     }
 }
@@ -423,5 +512,13 @@ private fun FoodCardPreview() {
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun BottomBarPreview() {
+    DieterTheme {
+        BottomBar()
     }
 }

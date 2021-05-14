@@ -75,6 +75,10 @@ dependencies {
     implementation(Libs.AndroidX.Lifecycle.viewModelCompose)
     implementation(Libs.AndroidX.Lifecycle.runtimeKtx)
 
+    implementation(Libs.AndroidX.Camera.camera2)
+    implementation(Libs.AndroidX.Camera.cameraView)
+    implementation(Libs.AndroidX.Camera.lifecycle)
+
     implementation(Libs.AndroidX.Compose.material)
     implementation(Libs.AndroidX.Compose.tooling)
     implementation(Libs.AndroidX.Compose.layout)

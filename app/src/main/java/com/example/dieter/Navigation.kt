@@ -31,6 +31,7 @@ object MainDestinations {
     const val HOME_ROUTE = "home"
     const val ACCOUNT_ROUTE = "account"
     const val CALCULATE_NUTRIENTS_ROUTE = "calculate_nutrients"
+    const val SEARCH_INGREDIENT_ROUTE = "search_ingredient"
 //    const val COURSE_DETAIL_ID_KEY = "courseId" /* For reference */
 }
 
@@ -53,6 +54,7 @@ fun NavGraph(
         navController = navController,
         startDestination = if (showWelcomeInitially) MainDestinations.WELCOME_ROUTE else startDestination
     ) {
+
         composable(MainDestinations.WELCOME_ROUTE) {
             // Intercept back in Welcome: make it finish the activity
             val welcomeViewModel: WelcomeViewModel =
@@ -131,6 +133,10 @@ class MainActions(navController: NavHostController) {
         navController.navigate(MainDestinations.HOME_ROUTE)
     }
     val calculateNutrients: () -> Unit = {
+        navController.navigate(MainDestinations.CALCULATE_NUTRIENTS_ROUTE)
+    }
+
+    val searchIngredient: () -> Unit = {
         navController.navigate(MainDestinations.CALCULATE_NUTRIENTS_ROUTE)
     }
 

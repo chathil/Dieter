@@ -12,7 +12,6 @@ object Libs {
     const val kotlinxCollections = "org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.3.4"
     const val hiltNavigationCompose = "androidx.hilt:hilt-navigation-compose:1.0.0-alpha01"
     const val playServicesAuth = "com.google.android.gms:play-services-auth:19.0.0"
-
     object Hilt {
         private const val version = "2.33-beta"
         const val hiltCompiler = "com.google.dagger:hilt-compiler:$version"
@@ -65,6 +64,13 @@ object Libs {
         const val appcompat = "androidx.appcompat:appcompat:1.2.0"
         const val coreKtx = "androidx.core:core-ktx:1.3.2"
         const val navigation = "androidx.navigation:navigation-compose:1.0.0-alpha10"
+
+        object Camera {
+            private const val version = "1.1.0-alpha04"
+            const val camera2 = "androidx.camera:camera-camera2:$version"
+            const val lifecycle = "androidx.camera:camera-lifecycle:$version"
+            const val cameraView = "androidx.camera:camera-view:1.0.0-alpha24"
+        }
 
         object Activity {
             const val activityCompose = "androidx.activity:activity-compose:1.3.0-alpha06"

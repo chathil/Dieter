@@ -6,7 +6,7 @@ import com.example.dieter.data.source.EdamamRepository
 import com.example.dieter.data.source.domain.BodyWeightModel
 import com.example.dieter.data.source.domain.FoodType
 import com.example.dieter.data.source.domain.NutrientModel
-import com.example.dieter.data.source.domain.TodaysFood
+import com.example.dieter.data.source.domain.TodaysFoodModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Date
 import javax.inject.Inject
@@ -42,11 +42,11 @@ class HomeViewModel @Inject constructor(
     )
 
     val todaysFoods = listOf(
-        TodaysFood(FoodType.BREAKFAST, "Egg Sandwich", "fake_food.jpg", 15, Date(1619289713000)),
-        TodaysFood(FoodType.BRUNCH, "Egg Sandwich", "fake_food.jpg", 15, Date(1619203313000)),
-        TodaysFood(FoodType.LUNCH, "Egg Sandwich", "fake_food.jpg", 15, Date(1619203313000)),
-        TodaysFood(FoodType.DINNER, "Egg Sandwich", "fake_food.jpg", 15, Date(1618944113000)),
-        TodaysFood(FoodType.DRINK, "Egg Sandwich", "fake_food.jpg", 15, Date(1618944113000)),
+        TodaysFoodModel(FoodType.BREAKFAST, "Egg Sandwich", "fake_food.jpg", 15, Date(1619289713000)),
+        TodaysFoodModel(FoodType.BRUNCH, "Egg Sandwich", "fake_food.jpg", 15, Date(1619203313000)),
+        TodaysFoodModel(FoodType.LUNCH, "Egg Sandwich", "fake_food.jpg", 15, Date(1619203313000)),
+        TodaysFoodModel(FoodType.DINNER, "Egg Sandwich", "fake_food.jpg", 15, Date(1618944113000)),
+        TodaysFoodModel(FoodType.DRINK, "Egg Sandwich", "fake_food.jpg", 15, Date(1618944113000)),
     )
 
     companion object {

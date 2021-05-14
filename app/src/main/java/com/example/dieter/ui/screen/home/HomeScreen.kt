@@ -56,7 +56,7 @@ import com.example.dieter.R
 import com.example.dieter.data.source.domain.BodyWeightModel
 import com.example.dieter.data.source.domain.FoodType
 import com.example.dieter.data.source.domain.NutrientModel
-import com.example.dieter.data.source.domain.TodaysFood
+import com.example.dieter.data.source.domain.TodaysFoodModel
 import com.example.dieter.ui.component.AppNameHeader
 import com.example.dieter.ui.component.DieterDefaultButton
 import com.example.dieter.ui.component.DieterProgressBar
@@ -292,7 +292,7 @@ private fun BodyWeightBar(weightModel: BodyWeightModel, modifier: Modifier = Mod
 @SuppressLint("DefaultLocale")
 @Composable
 @OptIn(ExperimentalStdlibApi::class)
-private fun FoodCard(food: TodaysFood, modifier: Modifier = Modifier) {
+private fun FoodCard(foodModel: TodaysFoodModel, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -327,10 +327,10 @@ private fun FoodCard(food: TodaysFood, modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                food.type.toString().lowercase().capitalize(),
+                foodModel.type.toString().lowercase().capitalize(),
                 style = MaterialTheme.typography.subtitle2
             )
-            Text("${food.cal} kcal", style = MaterialTheme.typography.caption)
+            Text("${foodModel.cal} kcal", style = MaterialTheme.typography.caption)
         }
     }
 }
@@ -482,7 +482,7 @@ private fun FoodCardPreview() {
         Surface {
             Column(modifier = Modifier.padding(16.dp)) {
                 FoodCard(
-                    TodaysFood(
+                    TodaysFoodModel(
                         FoodType.BREAKFAST,
                         "Egg Sandwich",
                         "fake_food.jpg",
@@ -492,7 +492,7 @@ private fun FoodCardPreview() {
                 )
                 Spacer(Modifier.size(8.dp))
                 FoodCard(
-                    TodaysFood(
+                    TodaysFoodModel(
                         FoodType.BREAKFAST,
                         "Egg Sandwich",
                         "fake_food.jpg",
@@ -502,7 +502,7 @@ private fun FoodCardPreview() {
                 )
                 Spacer(Modifier.size(8.dp))
                 FoodCard(
-                    TodaysFood(
+                    TodaysFoodModel(
                         FoodType.BREAKFAST,
                         "Egg Sandwich",
                         "fake_food.jpg",

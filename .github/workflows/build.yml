@@ -26,6 +26,12 @@ jobs:
       - name: Copy CI gradle.properties
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
 
+      - name: Create Secret Credentials
+        run: 'echo "$CUSTOM_PROPERTIES" > secret.properties'
+        shell: bash
+        env:
+          CUSTOM_PROPERTIES: ${{ secrets.EDAMAM_API }}
+
       - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:

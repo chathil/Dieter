@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
@@ -18,6 +19,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.dieter.DieterAppState
+import com.example.dieter.data.source.domain.IngredientModel
 import com.example.dieter.ui.component.TextFieldError
 import com.example.dieter.ui.component.TextFieldState
 import com.example.dieter.ui.component.UpButton
@@ -25,10 +28,11 @@ import com.example.dieter.ui.screen.calculate.nutrients.IngredientSearchState
 import com.example.dieter.ui.theme.DieterTheme
 
 @Composable
-private fun SearchIngredientScreen(
+fun SearchIngredientScreen(
     viewModel: SearchIngredientViewModel,
     goUp: () -> Unit = {},
-    done: (a: String) -> Unit = {}
+    done: (a: String) -> Unit = {},
+    appState: DieterAppState
 ) {
     Column {
         Row {
@@ -36,6 +40,11 @@ private fun SearchIngredientScreen(
             Text("Search ingredient", style = MaterialTheme.typography.h6)
         }
         IngredientSearch(modifier = Modifier.padding(16.dp))
+        Button(onClick = {
+            appState.addIngredient(IngredientModel(Math.random().toInt()))
+        }) {
+            Text("Add Ing")
+        }
     }
 }
 

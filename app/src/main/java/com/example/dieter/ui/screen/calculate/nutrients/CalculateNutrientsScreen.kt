@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
+import com.example.dieter.DieterAppState
 import com.example.dieter.R
 import com.example.dieter.application.DieterApplication
 import com.example.dieter.ui.component.CameraPreview
@@ -58,6 +59,7 @@ fun hasPermissions(context: Context) = PERMISSIONS_REQUIRED.all {
 
 @Composable
 fun CalculateNutrientsScreen(
+    appState: DieterAppState,
     viewModel: CalculateNutrientsViewModel,
     goUp: () -> Unit = {},
     navigateToSearchIngredient: () -> Unit = {}
@@ -92,6 +94,9 @@ fun CalculateNutrientsScreen(
                     style = MaterialTheme.typography.h6
                 )
                 Column(modifier = Modifier.fillMaxSize()) {
+                    appState.ingredientsState.value.forEach {
+                        Text(it.id.toString())
+                    }
                 }
             }
             UpButton(goUp)

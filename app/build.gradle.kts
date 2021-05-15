@@ -1,4 +1,5 @@
 import com.example.buildsrc.Libs
+import org.jetbrains.kotlin.konan.properties.Properties
 
 plugins {
     id("com.android.application")
@@ -23,6 +24,13 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        val versionPropertiesFile = file("${project.rootDir.absolutePath}/secret.properties")
+        val versionProperties = Properties()
+        if (versionPropertiesFile.exists()) {
+            versionProperties.load(versionPropertiesFile.reader())
+        }
+        buildConfigField("String", "EDAMAM_API_KEY", versionProperties.getProperty("EDAMAM_API_KEY"))
+        buildConfigField("String", "EDAMAM_APP_ID", versionProperties.getProperty("EDAMAM_APP_ID"))
     }
 
     buildTypes {

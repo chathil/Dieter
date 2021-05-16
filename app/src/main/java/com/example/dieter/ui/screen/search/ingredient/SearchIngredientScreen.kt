@@ -39,7 +39,7 @@ import com.example.dieter.data.source.domain.IngredientModel
 import com.example.dieter.ui.component.TextFieldError
 import com.example.dieter.ui.component.TextFieldState
 import com.example.dieter.ui.component.UpButton
-import com.example.dieter.ui.screen.calculate.nutrients.IngredientSearchState
+import com.example.dieter.ui.screen.add.ingredients.IngredientSearchState
 import com.example.dieter.ui.theme.DieterShapes
 import com.example.dieter.ui.theme.DieterTheme
 import com.example.dieter.vo.DataState

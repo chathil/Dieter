@@ -1,4 +1,4 @@
-package com.example.dieter.ui.screen.calculate.nutrients
+package com.example.dieter.ui.screen.add.ingredients
 
 import android.Manifest
 import android.app.Activity
@@ -69,7 +69,7 @@ fun hasPermissions(context: Context) = PERMISSIONS_REQUIRED.all {
 
 @Composable
 fun CalculateNutrientsScreen(
-    viewModel: CalculateNutrientsViewModel,
+    viewModel: AddIngredientsViewModel,
     goUp: () -> Unit = {},
     navigateToSearchIngredient: () -> Unit = {},
     appState: DieterAppState

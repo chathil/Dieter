@@ -13,8 +13,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigate
 import androidx.navigation.compose.rememberNavController
-import com.example.dieter.ui.screen.calculate.nutrients.CalculateNutrientsScreen
-import com.example.dieter.ui.screen.calculate.nutrients.CalculateNutrientsViewModel
+import com.example.dieter.ui.screen.add.ingredients.CalculateNutrientsScreen
+import com.example.dieter.ui.screen.add.ingredients.AddIngredientsViewModel
 import com.example.dieter.ui.screen.home.HomeScreen
 import com.example.dieter.ui.screen.home.HomeViewModel
 import com.example.dieter.ui.screen.search.ingredient.SearchIngredientScreen
@@ -86,14 +86,14 @@ fun NavGraph(
         }
 
         composable(MainDestinations.CALCULATE_NUTRIENTS_ROUTE) {
-            val calculateNutrientsViewModel: CalculateNutrientsViewModel = viewModel(
+            val addIngredientsViewModel: AddIngredientsViewModel = viewModel(
                 factory = HiltViewModelFactory(
                     LocalContext.current, it
                 )
             )
             CalculateNutrientsScreen(
                 appState = appState,
-                viewModel = calculateNutrientsViewModel,
+                viewModel = addIngredientsViewModel,
                 goUp = actions.upPress,
                 navigateToSearchIngredient = actions.searchIngredient
             )

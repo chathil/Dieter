@@ -1,3 +1,5 @@
 package com.example.dieter.data.source.remote.response
 
-class NutrientResponse
+data class NutrientResponse(
+    val id: String
+)

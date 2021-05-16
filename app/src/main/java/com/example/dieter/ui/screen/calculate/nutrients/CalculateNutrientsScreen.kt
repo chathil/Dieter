@@ -39,9 +39,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
+import com.example.dieter.DieterAppState
 import com.example.dieter.R
 import com.example.dieter.application.DieterApplication
-import com.example.dieter.ui.component.CameraPreview
 import com.example.dieter.ui.component.UpButton
 import com.example.dieter.ui.theme.DieterShapes
 import com.example.dieter.ui.theme.DieterTheme
@@ -60,7 +60,8 @@ fun hasPermissions(context: Context) = PERMISSIONS_REQUIRED.all {
 fun CalculateNutrientsScreen(
     viewModel: CalculateNutrientsViewModel,
     goUp: () -> Unit = {},
-    navigateToSearchIngredient: () -> Unit = {}
+    navigateToSearchIngredient: () -> Unit = {},
+    appState: DieterAppState
 ) {
     val context = LocalContext.current
     if (!hasPermissions(context)) {
@@ -79,8 +80,17 @@ fun CalculateNutrientsScreen(
                 verticalArrangement = Arrangement.Top,
                 modifier = Modifier.fillMaxSize()
             ) {
-                CameraPreview(
-                    imageCapture = imageCapture,
+                /**
+                 * TODO Camera keep printing error logs that makes it hard to read other logs
+                 * Disabling it for a while until there's a solution
+                 */
+                // CameraPreview(
+                //     imageCapture = imageCapture,
+                //     modifier = Modifier
+                //         .fillMaxWidth()
+                //         .height(384.dp)
+                // )
+                Spacer(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(384.dp)

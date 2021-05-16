@@ -55,7 +55,6 @@ fun CameraPreview(
                         cameraProvider.bindToLifecycle(
                             lifecycleOwner, cameraSelector, preview, imageCapture
                         )
-                        // imageCapture.
                     } catch (exc: Exception) {
                         Log.e("CameraPreview", "Use case binding failed", exc)
                     }

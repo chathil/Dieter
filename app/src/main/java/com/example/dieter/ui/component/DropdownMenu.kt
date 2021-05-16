@@ -47,7 +47,6 @@ fun MeasurementDropdown(
     else
         Icons.Filled.ExpandMore
 
-
     Column(modifier = modifier) {
         OutlinedTextField(
             value = selectedText,
@@ -65,10 +64,12 @@ fun MeasurementDropdown(
             modifier = Modifier.fillMaxWidth()
         ) {
             measurements.forEach { label ->
-                DropdownMenuItem(onClick = {
-                    selectedText = label.label
-                    expanded = false
-                }) {
+                DropdownMenuItem(
+                    onClick = {
+                        selectedText = label.label
+                        expanded = false
+                    }
+                ) {
                     Text(text = label.label)
                 }
             }

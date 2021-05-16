@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -33,8 +34,8 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.NavigateNext
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -42,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.requestPermissions
@@ -119,7 +121,9 @@ fun CalculateNutrientsScreen(
                     ingredientState.forEach {
                         IngredientCard(
                             ingredientModel = it,
-                            remove = { appState.removeIngredient(it.key) })
+                            remove = { appState.removeIngredient(it.key) },
+                            onPortionUpdated = { p -> appState.updatePortion(it.key, p) }
+                        )
                     }
                     Spacer(Modifier.size(136.dp))
                 }
@@ -190,7 +194,7 @@ private fun BottomBar(
     modifier: Modifier = Modifier,
     searchIngredient: () -> Unit = {},
     takePicture: () -> Unit = {},
-    openGallery: () -> Unit = {}
+    next: () -> Unit = {}
 ) {
     Surface(
         elevation = 8.dp,
@@ -224,11 +228,11 @@ private fun BottomBar(
                 )
             }
             IconButton(
-                onClick = openGallery
+                onClick = next
             ) {
                 Icon(
-                    imageVector = Icons.Filled.AddAPhoto,
-                    contentDescription = "add from gallery"
+                    imageVector = Icons.Filled.NavigateNext,
+                    contentDescription = "next"
                 )
             }
         }
@@ -236,7 +240,11 @@ private fun BottomBar(
 }
 
 @Composable
-private fun IngredientCard(ingredientModel: Map.Entry<IngredientModel, Int>, remove: () -> Unit = {}) {
+private fun IngredientCard(
+    ingredientModel: Map.Entry<IngredientModel, Int>,
+    remove: () -> Unit = {},
+    onPortionUpdated: (Int) -> Unit = {}
+) {
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -270,7 +278,10 @@ private fun IngredientCard(ingredientModel: Map.Entry<IngredientModel, Int>, rem
 
             OutlinedTextField(
                 value = ingredientModel.value.toString(),
-                onValueChange = { },
+                onValueChange = {
+                    onPortionUpdated(it.toIntOrNull() ?: 0)
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                 modifier = Modifier
                     .padding(start = 8.dp, bottom = 8.dp, end = 8.dp)
                     .width(112.dp)
@@ -292,15 +303,17 @@ private fun BottomBarPreview() {
 private fun IngredientCardPreview() {
     DieterTheme {
         IngredientCard(
-            mapOf(IngredientModel(
-                ")",
-                "Broccoli",
-                IngredientModel.NutrientSnippet(9f, 10f, 2f, 39f, 39f),
-                "Meal",
-                "Meal Label",
-                emptyList(),
-                null
-            ) to 1).entries.first()
+            mapOf(
+                IngredientModel(
+                    ")",
+                    "Broccoli",
+                    IngredientModel.NutrientSnippet(9f, 10f, 2f, 39f, 39f),
+                    "Meal",
+                    "Meal Label",
+                    emptyList(),
+                    null
+                ) to 1
+            ).entries.first()
         )
     }
 }

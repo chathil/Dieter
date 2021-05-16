@@ -17,6 +17,8 @@ import com.example.dieter.ui.screen.calculate.nutrients.CalculateNutrientsScreen
 import com.example.dieter.ui.screen.calculate.nutrients.CalculateNutrientsViewModel
 import com.example.dieter.ui.screen.home.HomeScreen
 import com.example.dieter.ui.screen.home.HomeViewModel
+import com.example.dieter.ui.screen.search.ingredient.SearchIngredientScreen
+import com.example.dieter.ui.screen.search.ingredient.SearchIngredientViewModel
 import com.example.dieter.ui.screen.welcome.WelcomeScreen
 import com.example.dieter.ui.screen.welcome.WelcomeViewModel
 import com.google.firebase.auth.ktx.auth
@@ -54,9 +56,8 @@ fun NavGraph(
         navController = navController,
         startDestination = if (showWelcomeInitially) MainDestinations.WELCOME_ROUTE else startDestination
     ) {
-
+        val appState = DieterAppState()
         composable(MainDestinations.WELCOME_ROUTE) {
-            // Intercept back in Welcome: make it finish the activity
             val welcomeViewModel: WelcomeViewModel =
                 viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
             WelcomeScreen(
@@ -72,6 +73,7 @@ fun NavGraph(
         }
 
         composable(MainDestinations.HOME_ROUTE) {
+            // Intercept back to Welcome: make it finish the activity
             BackHandler {
                 finishActivity()
             }
@@ -89,7 +91,24 @@ fun NavGraph(
                     LocalContext.current, it
                 )
             )
-            CalculateNutrientsScreen(calculateNutrientsViewModel)
+            CalculateNutrientsScreen(
+                appState = appState,
+                viewModel = calculateNutrientsViewModel,
+                goUp = actions.upPress,
+                navigateToSearchIngredient = actions.searchIngredient
+            )
+        }
+        composable(MainDestinations.SEARCH_INGREDIENT_ROUTE) {
+            val viewModel: SearchIngredientViewModel = viewModel(
+                factory = HiltViewModelFactory(
+                    LocalContext.current, it
+                )
+            )
+            SearchIngredientScreen(
+                appState = appState,
+                viewModel = viewModel,
+                goUp = actions.upPress
+            )
         }
 
         // Reference for navigation with parameters
@@ -137,7 +156,7 @@ class MainActions(navController: NavHostController) {
     }
 
     val searchIngredient: () -> Unit = {
-        navController.navigate(MainDestinations.CALCULATE_NUTRIENTS_ROUTE)
+        navController.navigate(MainDestinations.SEARCH_INGREDIENT_ROUTE)
     }
 
     // For reference

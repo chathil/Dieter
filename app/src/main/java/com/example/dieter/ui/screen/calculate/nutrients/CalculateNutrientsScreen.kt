@@ -22,16 +22,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -42,6 +49,8 @@ import androidx.core.content.ContextCompat
 import com.example.dieter.DieterAppState
 import com.example.dieter.R
 import com.example.dieter.application.DieterApplication
+import com.example.dieter.data.source.domain.IngredientModel
+import com.example.dieter.ui.component.MeasurementDropdown
 import com.example.dieter.ui.component.UpButton
 import com.example.dieter.ui.theme.DieterShapes
 import com.example.dieter.ui.theme.DieterTheme
@@ -74,6 +83,7 @@ fun CalculateNutrientsScreen(
 
     Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()) {
         val imageCapture = ImageCapture.Builder().build()
+        val ingredientState by appState.ingredientsState.collectAsState()
         Box {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -101,10 +111,23 @@ fun CalculateNutrientsScreen(
                         "ingredient or add manually",
                     style = MaterialTheme.typography.h6
                 )
-                Column(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    ingredientState.forEach {
+                        IngredientCard(
+                            ingredientModel = it,
+                            remove = { appState.removeIngredient(it.key) })
+                    }
+                    Spacer(Modifier.size(136.dp))
                 }
             }
-            UpButton(goUp)
+            UpButton {
+                goUp()
+                appState.clearIngredient()
+            }
         }
         BottomBar(
             takePicture = { takePhoto(imageCapture) },
@@ -212,10 +235,72 @@ private fun BottomBar(
     }
 }
 
+@Composable
+private fun IngredientCard(ingredientModel: Map.Entry<IngredientModel, Int>, remove: () -> Unit = {}) {
+    Column {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+
+            IconButton(onClick = { remove() }) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "delete"
+                )
+            }
+            Text(ingredientModel.key.label, modifier = Modifier.padding(end = 16.dp))
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .border(2.dp, MaterialTheme.colors.primary, DieterShapes.small),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            MeasurementDropdown(
+                measurements = ingredientModel.key.measures,
+                modifier = Modifier
+                    .padding(start = 8.dp, bottom = 8.dp, end = 8.dp)
+                    .width(214.dp)
+            )
+
+            OutlinedTextField(
+                value = ingredientModel.value.toString(),
+                onValueChange = { },
+                modifier = Modifier
+                    .padding(start = 8.dp, bottom = 8.dp, end = 8.dp)
+                    .width(112.dp)
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun BottomBarPreview() {
     DieterTheme {
         BottomBar()
+    }
+}
+
+@Preview
+@Composable
+private fun IngredientCardPreview() {
+    DieterTheme {
+        IngredientCard(
+            mapOf(IngredientModel(
+                ")",
+                "Broccoli",
+                IngredientModel.NutrientSnippet(9f, 10f, 2f, 39f, 39f),
+                "Meal",
+                "Meal Label",
+                emptyList(),
+                null
+            ) to 1).entries.first()
+        )
     }
 }

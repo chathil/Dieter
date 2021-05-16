@@ -3,6 +3,7 @@ package com.example.dieter.ui.screen.search.ingredient
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -79,7 +80,10 @@ fun SearchIngredientScreen(
                 (ingredientsState as DataState.Success<List<IngredientModel>>).data.forEach {
                     IngredientCard(
                         ingredientModel = it,
-                        modifier = Modifier.padding(bottom = 8.dp, start = 16.dp, end = 16.dp)
+                        modifier = Modifier.padding(bottom = 8.dp, start = 16.dp, end = 16.dp).clickable {
+                            appState.addIngredient(it)
+                            goUp()
+                        }
                     )
                 }
                 Spacer(Modifier.size(64.dp))

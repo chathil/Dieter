@@ -10,6 +10,8 @@ plugins {
     id("kotlinx-serialization")
 }
 
+
+
 android {
     compileSdk = 30
     buildToolsVersion = "30.0.3"

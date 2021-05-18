@@ -1,6 +1,6 @@
 package com.example.dieter.data.source.remote.response
 
-import com.example.dieter.data.source.domain.IngredientModel
+import com.example.dieter.data.source.domain.NutrientType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -29,5 +29,10 @@ data class IngredientResponse(
     )
 }
 
-fun IngredientResponse.NutrientSnippet.asDomainModel() =
-    IngredientModel.NutrientSnippet(calorie, protein, fat, carbs, fiber)
+fun IngredientResponse.NutrientSnippet.asDomainModel() = mapOf(
+    NutrientType.ENERC_KCAL to calorie,
+    NutrientType.PROCNT to protein,
+    NutrientType.FAT to fat,
+    NutrientType.CHOCDF to carbs,
+    NutrientType.FIBTG to fiber
+)

@@ -1,4 +1,4 @@
-package com.example.dieter.ui.screen.calculate.nutrients
+package com.example.dieter.ui.screen.add.ingredients
 
 import com.example.dieter.ui.component.TextFieldState
 

@@ -36,10 +36,11 @@ import androidx.compose.ui.unit.dp
 import com.example.dieter.DieterAppState
 import com.example.dieter.R
 import com.example.dieter.data.source.domain.IngredientModel
+import com.example.dieter.data.source.domain.NutrientType
 import com.example.dieter.ui.component.TextFieldError
 import com.example.dieter.ui.component.TextFieldState
 import com.example.dieter.ui.component.UpButton
-import com.example.dieter.ui.screen.calculate.nutrients.IngredientSearchState
+import com.example.dieter.ui.screen.add.ingredients.IngredientSearchState
 import com.example.dieter.ui.theme.DieterShapes
 import com.example.dieter.ui.theme.DieterTheme
 import com.example.dieter.vo.DataState
@@ -80,17 +81,22 @@ fun SearchIngredientScreen(
                 (ingredientsState as DataState.Success<List<IngredientModel>>).data.forEach {
                     IngredientCard(
                         ingredientModel = it,
-                        modifier = Modifier.padding(bottom = 8.dp, start = 16.dp, end = 16.dp).clickable {
-                            appState.addIngredient(it)
-                            goUp()
-                        }
+                        modifier = Modifier
+                            .padding(bottom = 8.dp, start = 16.dp, end = 16.dp)
+                            .clickable {
+                                appState.addIngredient(it)
+                                goUp()
+                            }
                     )
                 }
                 Spacer(Modifier.size(64.dp))
             }
             is DataState.Error -> {
                 Text("Something Went Wrong")
-                Log.e("SearchIngredientScreen", "SearchIngredientScreen: ${(ingredientsState as DataState.Error).exception}")
+                Log.e(
+                    "SearchIngredientScreen",
+                    "SearchIngredientScreen: ${(ingredientsState as DataState.Error).exception}"
+                )
             }
             is DataState.Empty -> {
                 Text("No Result")
@@ -187,7 +193,13 @@ private fun IngredientCardPreview() {
                 ingredientModel = IngredientModel(
                     ")",
                     "Broccoli",
-                    IngredientModel.NutrientSnippet(9f, 10f, 2f, 39f, 39f),
+                    mapOf(
+                        NutrientType.ENERC_KCAL to 9f,
+                        NutrientType.FIBTG to 10f,
+                        NutrientType.CA to 2f,
+                        NutrientType.FAT to 39f,
+                        NutrientType.P to 45f
+                    ),
                     "Meal",
                     "Meal Label",
                     emptyList(),

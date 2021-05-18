@@ -32,6 +32,7 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Home
@@ -74,7 +75,9 @@ import java.util.Date
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
     navigateToCalculateNutrients: () -> Unit = {},
-    reloadHome: () -> Unit = {}
+    reloadHome: () -> Unit = {},
+    burnCalories: () -> Unit = {},
+    setGoal: () -> Unit = {}
 ) {
     LocalSysUiController.current.setStatusBarColor(
         MaterialTheme.colors.background.copy(
@@ -94,7 +97,9 @@ fun HomeScreen(
             Spacer(Modifier.size(16.dp))
             HomeAppBar(modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(Modifier.size(12.dp))
-            TrialBanner(modifier = Modifier.padding(horizontal = 16.dp))
+            SignInBanner()
+            TrialBanner()
+            GoalBanner()
             Spacer(Modifier.size(12.dp))
             HomeSection(title = "Today's summary", modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(Modifier.size(22.dp))
@@ -162,25 +167,103 @@ private fun HomeAppBar(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun TrialBanner(modifier: Modifier = Modifier) {
+private fun TrialBanner(modifier: Modifier = Modifier, onClose: () -> Unit = {}) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .border(
                 2.dp,
-                MaterialTheme.colors.primary,
-                DieterShapes.medium
+                MaterialTheme.colors.primary
             )
-            .clip(DieterShapes.medium)
     ) {
-        Column(
-            Modifier
-                .background(MaterialTheme.colors.primary.copy(AlphaReallyTransparent))
-                .padding(horizontal = 12.dp, vertical = 16.dp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Get premium free for a week", style = MaterialTheme.typography.subtitle2)
-            Text("Just $9.99/month after. Cancel anytime", style = MaterialTheme.typography.body2)
+            Column(
+                Modifier
+                    .background(MaterialTheme.colors.primary.copy(AlphaReallyTransparent))
+                    .padding(16.dp)
+            ) {
+                Text("Get premium free for a week", style = MaterialTheme.typography.subtitle2)
+                Text(
+                    "Just $9.99/month after. Cancel anytime",
+                    style = MaterialTheme.typography.body2
+                )
+            }
+            IconButton(onClick = onClose) {
+                Icon(Icons.Filled.Close, "close")
+            }
+        }
+    }
+}
+
+@Composable
+private fun GoalBanner(modifier: Modifier = Modifier, onClose: () -> Unit = {}) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .border(
+                2.dp,
+                MaterialTheme.colors.primary
+            )
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(
+                Modifier
+                    .background(MaterialTheme.colors.primary.copy(AlphaReallyTransparent))
+                    .padding(16.dp)
+            ) {
+                Text(
+                    "Looks like you haven’t set a goal",
+                    style = MaterialTheme.typography.subtitle2
+                )
+                Text(
+                    "set it now so we could help you",
+                    style = MaterialTheme.typography.body2
+                )
+            }
+            IconButton(onClick = onClose) {
+                Icon(Icons.Filled.Close, "close")
+            }
+        }
+    }
+}
+
+@Composable
+private fun SignInBanner(modifier: Modifier = Modifier, onClose: () -> Unit = {}) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .border(
+                2.dp,
+                MaterialTheme.colors.primary
+            )
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(
+                Modifier
+                    .background(MaterialTheme.colors.primary.copy(AlphaReallyTransparent))
+                    .padding(16.dp)
+            ) {
+                Text("Sign In", style = MaterialTheme.typography.subtitle2)
+                Text(
+                    "to save & sync data across devices.",
+                    style = MaterialTheme.typography.body2
+                )
+            }
+            IconButton(onClick = onClose) {
+                Icon(Icons.Filled.Close, "close")
+            }
         }
     }
 }
@@ -415,9 +498,13 @@ fun HomeAppBarPreview() {
 
 @Preview
 @Composable
-fun TrialBannerPreview() {
+fun BannerPreview() {
     DieterTheme {
-        TrialBanner()
+        Column {
+            SignInBanner()
+            TrialBanner()
+            GoalBanner()
+        }
     }
 }
 

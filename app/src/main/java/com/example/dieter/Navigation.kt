@@ -13,8 +13,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigate
 import androidx.navigation.compose.rememberNavController
-import com.example.dieter.ui.screen.add.ingredients.CalculateNutrientsScreen
+import com.example.dieter.ui.screen.add.ingredients.AddIngredientsScreen
 import com.example.dieter.ui.screen.add.ingredients.AddIngredientsViewModel
+import com.example.dieter.ui.screen.calculate.CalculateScreen
+import com.example.dieter.ui.screen.calculate.CalculateViewModel
 import com.example.dieter.ui.screen.home.HomeScreen
 import com.example.dieter.ui.screen.home.HomeViewModel
 import com.example.dieter.ui.screen.search.ingredient.SearchIngredientScreen
@@ -32,8 +34,9 @@ object MainDestinations {
     const val WELCOME_ROUTE = "welcome"
     const val HOME_ROUTE = "home"
     const val ACCOUNT_ROUTE = "account"
-    const val CALCULATE_NUTRIENTS_ROUTE = "calculate_nutrients"
+    const val ADD_INGREDIENTS_ROUTE = "add_ingredients"
     const val SEARCH_INGREDIENT_ROUTE = "search_ingredient"
+    const val CALCULATE_NUTRIENTS_ROUTE = "calculate_nutrients"
 //    const val COURSE_DETAIL_ID_KEY = "courseId" /* For reference */
 }
 
@@ -81,21 +84,22 @@ fun NavGraph(
                 viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
             HomeScreen(
                 homeViewModel = homeViewModel,
-                navigateToCalculateNutrients = actions.calculateNutrients
+                navigateToCalculateNutrients = actions.addIngredients
             )
         }
 
-        composable(MainDestinations.CALCULATE_NUTRIENTS_ROUTE) {
+        composable(MainDestinations.ADD_INGREDIENTS_ROUTE) {
             val addIngredientsViewModel: AddIngredientsViewModel = viewModel(
                 factory = HiltViewModelFactory(
                     LocalContext.current, it
                 )
             )
-            CalculateNutrientsScreen(
+            AddIngredientsScreen(
                 appState = appState,
                 viewModel = addIngredientsViewModel,
                 goUp = actions.upPress,
-                navigateToSearchIngredient = actions.searchIngredient
+                calculateNutrients = actions.calculateNutrients,
+                navigateToSearchIngredient = actions.searchIngredient,
             )
         }
         composable(MainDestinations.SEARCH_INGREDIENT_ROUTE) {
@@ -108,6 +112,20 @@ fun NavGraph(
                 appState = appState,
                 viewModel = viewModel,
                 goUp = actions.upPress
+            )
+        }
+
+        composable(MainDestinations.CALCULATE_NUTRIENTS_ROUTE) {
+            val viewModel: CalculateViewModel = viewModel(
+                factory = HiltViewModelFactory(
+                    LocalContext.current, it
+                )
+            )
+            CalculateScreen(
+                viewModel = viewModel,
+                appState = appState,
+                goUp = actions.upPress,
+                save = { /* TODO: Go back home and clear backstack */ }
             )
         }
 
@@ -151,12 +169,16 @@ class MainActions(navController: NavHostController) {
     val welcomeToHome: () -> Unit = {
         navController.navigate(MainDestinations.HOME_ROUTE)
     }
-    val calculateNutrients: () -> Unit = {
-        navController.navigate(MainDestinations.CALCULATE_NUTRIENTS_ROUTE)
+    val addIngredients: () -> Unit = {
+        navController.navigate(MainDestinations.ADD_INGREDIENTS_ROUTE)
     }
 
     val searchIngredient: () -> Unit = {
         navController.navigate(MainDestinations.SEARCH_INGREDIENT_ROUTE)
+    }
+
+    val calculateNutrients: () -> Unit = {
+        navController.navigate(MainDestinations.CALCULATE_NUTRIENTS_ROUTE)
     }
 
     // For reference

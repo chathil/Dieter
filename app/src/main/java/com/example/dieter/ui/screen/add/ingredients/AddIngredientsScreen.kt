@@ -52,6 +52,7 @@ import com.example.dieter.DieterAppState
 import com.example.dieter.R
 import com.example.dieter.application.DieterApplication
 import com.example.dieter.data.source.domain.IngredientModel
+import com.example.dieter.data.source.domain.NutrientType
 import com.example.dieter.ui.component.MeasurementDropdown
 import com.example.dieter.ui.component.UpButton
 import com.example.dieter.ui.theme.DieterShapes
@@ -68,10 +69,11 @@ fun hasPermissions(context: Context) = PERMISSIONS_REQUIRED.all {
 }
 
 @Composable
-fun CalculateNutrientsScreen(
+fun AddIngredientsScreen(
     viewModel: AddIngredientsViewModel,
     goUp: () -> Unit = {},
     navigateToSearchIngredient: () -> Unit = {},
+    calculateNutrients: () -> Unit = {},
     appState: DieterAppState
 ) {
     val context = LocalContext.current
@@ -136,6 +138,7 @@ fun CalculateNutrientsScreen(
         BottomBar(
             takePicture = { takePhoto(imageCapture) },
             searchIngredient = navigateToSearchIngredient,
+            next = calculateNutrients,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 36.dp)
         )
     }
@@ -307,7 +310,13 @@ private fun IngredientCardPreview() {
                 IngredientModel(
                     ")",
                     "Broccoli",
-                    IngredientModel.NutrientSnippet(9f, 10f, 2f, 39f, 39f),
+                    mapOf(
+                        NutrientType.ENERC_KCAL to 9f,
+                        NutrientType.FIBTG to 10f,
+                        NutrientType.CA to 2f,
+                        NutrientType.FAT to 39f,
+                        NutrientType.P to 45f
+                    ),
                     "Meal",
                     "Meal Label",
                     emptyList(),

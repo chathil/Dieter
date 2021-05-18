@@ -22,10 +22,6 @@ class SearchIngredientViewModel @Inject constructor(
     val state: StateFlow<DataState<List<IngredientModel>>>
         get() = _state
 
-    init {
-        searchIngredient("broccoli")
-    }
-
     fun searchIngredient(name: String) {
         viewModelScope.launch {
             edamamRepository.searchIngredient(name).collect {

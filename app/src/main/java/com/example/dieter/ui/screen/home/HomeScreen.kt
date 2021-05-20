@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,6 +70,8 @@ import com.example.dieter.ui.theme.DieterTheme
 import com.example.dieter.ui.theme.GreenPrimary
 import com.example.dieter.utils.LocalSysUiController
 import com.google.accompanist.insets.statusBarsPadding
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import java.util.Date
 
 @Composable
@@ -84,6 +87,9 @@ fun HomeScreen(
             AlphaNearTransparent
         )
     )
+    var showGoalBanner by remember { mutableStateOf(true) }
+    var showTrialBanner by remember { mutableStateOf(true) }
+    var showSignInBanner by remember { mutableStateOf(Firebase.auth.currentUser == null) }
     Box(contentAlignment = Alignment.BottomCenter) {
         val scrollState = rememberScrollState()
         Column(
@@ -97,9 +103,18 @@ fun HomeScreen(
             Spacer(Modifier.size(16.dp))
             HomeAppBar(modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(Modifier.size(12.dp))
-            SignInBanner()
-            TrialBanner()
-            GoalBanner()
+            if (showSignInBanner)
+                SignInBanner(onClose = { showSignInBanner = false })
+            if (showTrialBanner) {
+                TrialBanner(onClose = { showTrialBanner = false })
+            }
+
+            if (showGoalBanner) {
+                GoalBanner(
+                    onClose = { showGoalBanner = false },
+                    modifier = Modifier.clickable { setGoal() }
+                )
+            }
             Spacer(Modifier.size(12.dp))
             HomeSection(title = "Today's summary", modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(Modifier.size(22.dp))

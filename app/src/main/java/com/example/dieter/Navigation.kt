@@ -17,6 +17,8 @@ import com.example.dieter.ui.screen.add.ingredients.AddIngredientsScreen
 import com.example.dieter.ui.screen.add.ingredients.AddIngredientsViewModel
 import com.example.dieter.ui.screen.calculate.CalculateScreen
 import com.example.dieter.ui.screen.calculate.CalculateViewModel
+import com.example.dieter.ui.screen.goal.GoalScreen
+import com.example.dieter.ui.screen.goal.GoalViewModel
 import com.example.dieter.ui.screen.home.HomeScreen
 import com.example.dieter.ui.screen.home.HomeViewModel
 import com.example.dieter.ui.screen.search.ingredient.SearchIngredientScreen
@@ -37,6 +39,7 @@ object MainDestinations {
     const val ADD_INGREDIENTS_ROUTE = "add_ingredients"
     const val SEARCH_INGREDIENT_ROUTE = "search_ingredient"
     const val CALCULATE_NUTRIENTS_ROUTE = "calculate_nutrients"
+    const val SET_GOAL_ROUTE = "set_goal"
 //    const val COURSE_DETAIL_ID_KEY = "courseId" /* For reference */
 }
 
@@ -84,7 +87,8 @@ fun NavGraph(
                 viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
             HomeScreen(
                 homeViewModel = homeViewModel,
-                navigateToCalculateNutrients = actions.addIngredients
+                navigateToCalculateNutrients = actions.addIngredients,
+                setGoal = actions.setGoal
             )
         }
 
@@ -127,6 +131,15 @@ fun NavGraph(
                 goUp = actions.upPress,
                 save = { /* TODO: Go back home and clear backstack */ }
             )
+        }
+
+        composable(MainDestinations.SET_GOAL_ROUTE) {
+            val viewModel: GoalViewModel = viewModel(
+                factory = HiltViewModelFactory(
+                    LocalContext.current, it
+                )
+            )
+            GoalScreen(viewModel = viewModel, goUp = actions.upPress)
         }
 
         // Reference for navigation with parameters
@@ -179,6 +192,10 @@ class MainActions(navController: NavHostController) {
 
     val calculateNutrients: () -> Unit = {
         navController.navigate(MainDestinations.CALCULATE_NUTRIENTS_ROUTE)
+    }
+
+    val setGoal: () -> Unit = {
+        navController.navigate(MainDestinations.SET_GOAL_ROUTE)
     }
 
     // For reference

@@ -12,12 +12,12 @@ object Libs {
     const val kotlinxCollections = "org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.3.4"
     const val hiltNavigationCompose = "androidx.hilt:hilt-navigation-compose:1.0.0-alpha01"
     const val playServicesAuth = "com.google.android.gms:play-services-auth:19.0.0"
+
     object Hilt {
         private const val version = "2.33-beta"
         const val hiltCompiler = "com.google.dagger:hilt-compiler:$version"
         const val hiltAndroid = "com.google.dagger:hilt-android:$version"
         const val hiltGradlePlugin = "com.google.dagger:hilt-android-gradle-plugin:$version"
-
     }
 
     object Kotlin {
@@ -57,14 +57,15 @@ object Libs {
         const val analyticsKtx = "com.google.firebase:firebase-analytics-ktx"
         const val databaseKtx = "com.google.firebase:firebase-database-ktx"
         const val authKtx = "com.google.firebase:firebase-auth-ktx"
-
+        const val messagingKtx = "com.google.firebase:firebase-messaging-ktx"
     }
 
     object AndroidX {
         const val appcompat = "androidx.appcompat:appcompat:1.2.0"
         const val coreKtx = "androidx.core:core-ktx:1.3.2"
         const val navigation = "androidx.navigation:navigation-compose:1.0.0-alpha10"
-
+        const val dataStore = "androidx.datastore:datastore-preferences:1.0.0-beta01"
+        const val fragmentKtx = "androidx.fragment:fragment-ktx:1.3.4"
         object Camera {
             private const val version = "1.1.0-alpha04"
             const val camera2 = "androidx.camera:camera-camera2:$version"

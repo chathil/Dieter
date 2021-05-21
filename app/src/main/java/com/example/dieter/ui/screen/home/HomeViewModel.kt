@@ -1,5 +1,6 @@
 package com.example.dieter.ui.screen.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.dieter.data.source.DieterRepository
 import com.example.dieter.data.source.EdamamRepository
@@ -7,6 +8,8 @@ import com.example.dieter.data.source.domain.BodyWeightModel
 import com.example.dieter.data.source.domain.FoodType
 import com.example.dieter.data.source.domain.NutrientModel
 import com.example.dieter.data.source.domain.TodaysFoodModel
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.ktx.options
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Date
 import javax.inject.Inject
@@ -16,7 +19,7 @@ class HomeViewModel @Inject constructor(
     private val dieterRepository: DieterRepository,
     edamamRepository: EdamamRepository
 ) : ViewModel() {
-
+    
     val nutrients = listOf(
         NutrientModel("Calorie", 1437, 2000, "kcal"),
         NutrientModel("Carbs", 27, 19, "g"),

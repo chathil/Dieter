@@ -69,6 +69,7 @@ import com.example.dieter.ui.theme.DieterShapes
 import com.example.dieter.ui.theme.DieterTheme
 import com.example.dieter.ui.theme.GreenPrimary
 import com.example.dieter.utils.LocalSysUiController
+import com.example.dieter.vo.DataState
 import com.google.accompanist.insets.statusBarsPadding
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -80,7 +81,8 @@ fun HomeScreen(
     navigateToCalculateNutrients: () -> Unit = {},
     reloadHome: () -> Unit = {},
     burnCalories: () -> Unit = {},
-    setGoal: () -> Unit = {}
+    setGoal: () -> Unit = {},
+    temporaryId: String
 ) {
     LocalSysUiController.current.setStatusBarColor(
         MaterialTheme.colors.background.copy(

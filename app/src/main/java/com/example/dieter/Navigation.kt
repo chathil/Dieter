@@ -25,6 +25,7 @@ import com.example.dieter.ui.screen.search.ingredient.SearchIngredientScreen
 import com.example.dieter.ui.screen.search.ingredient.SearchIngredientViewModel
 import com.example.dieter.ui.screen.welcome.WelcomeScreen
 import com.example.dieter.ui.screen.welcome.WelcomeViewModel
+import com.example.dieter.vo.DataState
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -47,6 +48,7 @@ object MainDestinations {
 @Composable
 fun NavGraph(
     modifier: Modifier = Modifier,
+    temporaryId: String,
     finishActivity: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
     startDestination: String = MainDestinations.HOME_ROUTE,
@@ -68,6 +70,7 @@ fun NavGraph(
                 viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
             WelcomeScreen(
                 welcomeViewModel = welcomeViewModel,
+                temporaryId = temporaryId,
                 welcomeFinished = {
                     welcomeFinished.value = true
                     actions.welcomeFinished()
@@ -87,6 +90,7 @@ fun NavGraph(
                 viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
             HomeScreen(
                 homeViewModel = homeViewModel,
+                temporaryId = temporaryId,
                 navigateToCalculateNutrients = actions.addIngredients,
                 setGoal = actions.setGoal
             )

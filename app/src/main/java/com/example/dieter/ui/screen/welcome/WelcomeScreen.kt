@@ -75,7 +75,8 @@ import kotlinx.coroutines.launch
 fun WelcomeScreen(
     welcomeViewModel: WelcomeViewModel = viewModel(),
     welcomeFinished: () -> Unit,
-    navigateToHome: () -> Unit
+    navigateToHome: () -> Unit,
+    temporaryId: String
 ) {
     LocalSysUiController.current.setStatusBarColor(
         MaterialTheme.colors.background.copy(
@@ -84,6 +85,7 @@ fun WelcomeScreen(
     )
     val pagerState = rememberPagerState(pageCount = 3)
     var loginState by remember { mutableStateOf<DataState<FirebaseUser>>(DataState.Empty) }
+    var errorState by remember { mutableStateOf(false) }
     Scaffold {
         Column(
             modifier = Modifier
@@ -98,6 +100,8 @@ fun WelcomeScreen(
                     .padding(16.dp)
             )
             AppNameHeader()
+            if(errorState)
+                Text("Something went wrong")
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween
@@ -111,15 +115,33 @@ fun WelcomeScreen(
                         2 -> SlideThree(page = currentPage)
                     }
                 }
+
+
+
+                // Start: Move all this to viewModel --------
+                val scope = rememberCoroutineScope()
                 when (loginState) {
-                    is DataState.Success -> navigateToHome()
+                    is DataState.Success -> {
+                        scope.launch {
+                            welcomeViewModel.linkUserDevice(
+                                (loginState as DataState.Success<FirebaseUser>).data.uid,
+                                temporaryId
+                            ).collect { isAdded ->
+                                when (isAdded) {
+                                    is DataState.Success -> navigateToHome()
+                                    is DataState.Error -> errorState = true
+                                    else -> {
+                                    }
+                                }
+                            }
+                        }
+                    }
                     is DataState.Error -> Log.e("WelcomeScreen", "WelcomeScreen: $loginState")
                     is DataState.Loading -> Log.i("WelcomeScreen", "WelcomeScreen: Loading...")
                     is DataState.Empty -> Log.i("WelcomeScreen", "WelcomeScreen: Loading...")
                 }
 
                 /* TODO: https://google.github.io/accompanist/pager/ */
-                val scope = rememberCoroutineScope()
                 SlideNavigation(
                     currentPage = currentPage,
                     navigateToHome = navigateToHome,
@@ -131,6 +153,7 @@ fun WelcomeScreen(
                         }
                     }
                 )
+                // End: Move all this to viewModel ----------
             }
         }
     }
@@ -139,29 +162,29 @@ fun WelcomeScreen(
 @Composable
 fun GlideGifImage(request: Int) {
     val requestManager = Glide.with(LocalContext.current).addDefaultRequestListener(object :
-            RequestListener<Any> {
-            override fun onLoadFailed(
-                e: GlideException?,
-                model: Any?,
-                target: Target<Any>?,
-                isFirstResource: Boolean
-            ): Boolean {
-                return false
-            }
+        RequestListener<Any> {
+        override fun onLoadFailed(
+            e: GlideException?,
+            model: Any?,
+            target: Target<Any>?,
+            isFirstResource: Boolean
+        ): Boolean {
+            return false
+        }
 
-            override fun onResourceReady(
-                resource: Any?,
-                model: Any?,
-                target: Target<Any>?,
-                dataSource: DataSource?,
-                isFirstResource: Boolean
-            ): Boolean {
-                if (resource is GifDrawable) {
-                    resource.setLoopCount(1)
-                }
-                return false
+        override fun onResourceReady(
+            resource: Any?,
+            model: Any?,
+            target: Target<Any>?,
+            dataSource: DataSource?,
+            isFirstResource: Boolean
+        ): Boolean {
+            if (resource is GifDrawable) {
+                resource.setLoopCount(1)
             }
-        })
+            return false
+        }
+    })
 
     Surface(
         Modifier

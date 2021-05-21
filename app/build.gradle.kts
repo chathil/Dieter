@@ -77,12 +77,14 @@ dependencies {
     implementation(Libs.Coroutines.test)
     implementation(Libs.Coroutines.playServices)
 
+    implementation(Libs.AndroidX.dataStore)
     implementation(Libs.AndroidX.coreKtx)
     implementation(Libs.AndroidX.appcompat)
     implementation(Libs.AndroidX.navigation)
     implementation(Libs.AndroidX.Activity.activityCompose)
     implementation(Libs.AndroidX.Lifecycle.viewModelCompose)
     implementation(Libs.AndroidX.Lifecycle.runtimeKtx)
+    implementation(Libs.AndroidX.fragmentKtx)
 
     implementation(Libs.AndroidX.Camera.camera2)
     implementation(Libs.AndroidX.Camera.cameraView)
@@ -105,6 +107,7 @@ dependencies {
     implementation(Libs.Firebase.analyticsKtx)
     implementation(Libs.Firebase.databaseKtx)
     implementation(Libs.Firebase.authKtx)
+    implementation(Libs.Firebase.messagingKtx)
 
     kapt(Libs.Hilt.hiltCompiler)
     implementation(Libs.Hilt.hiltAndroid)

@@ -24,10 +24,20 @@ class MainActivity : ComponentActivity() {
         setContent {
             val systemUiController = remember { SystemUiController(window) }
             CompositionLocalProvider(LocalSysUiController provides systemUiController) {
-                val temporaryId by appViewModel.temporaryIdState.collectAsState()
-                when (temporaryId) {
+                val userRepId by appViewModel.userRepIdState.collectAsState()
+                val isWelcomeShown by appViewModel.isWelcomeShownState.collectAsState()
+                when (userRepId) {
                     is DataState.Success -> {
-                        DieterApp(temporaryId = (temporaryId as DataState.Success<String>).data) { finish() }
+                        DieterApp(
+                            userRepId = (userRepId as DataState.Success<String>).data,
+                            showWelcomeInitially = !isWelcomeShown,
+                            welcomeShown = {
+                                appViewModel.isWelcomeShown(true)
+                            },
+                            finishActivity = { finish() }
+                        )
+                    }
+                    else -> {
                     }
                 }
             }

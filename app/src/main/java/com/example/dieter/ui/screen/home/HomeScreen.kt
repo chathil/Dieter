@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Timeline
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +58,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dieter.R
 import com.example.dieter.data.source.domain.BodyWeightModel
 import com.example.dieter.data.source.domain.FoodType
+import com.example.dieter.data.source.domain.GoalModel
 import com.example.dieter.data.source.domain.NutrientModel
 import com.example.dieter.data.source.domain.TodaysFoodModel
 import com.example.dieter.ui.component.AppNameHeader
@@ -89,9 +91,25 @@ fun HomeScreen(
             AlphaNearTransparent
         )
     )
-    var showGoalBanner by remember { mutableStateOf(true) }
+    homeViewModel.goal(temporaryId)
     var showTrialBanner by remember { mutableStateOf(true) }
     var showSignInBanner by remember { mutableStateOf(Firebase.auth.currentUser == null) }
+    val goal by homeViewModel.goal.collectAsState()
+    var showGoalBanner by remember { mutableStateOf(false) }
+
+    when (goal) {
+        is DataState.Success -> if ((goal as DataState.Success<GoalModel?>).data == null) {
+            showGoalBanner = true
+        }
+        is DataState.Error -> {
+            showGoalBanner = true
+        }
+        is DataState.Loading -> {
+        }
+        is DataState.Empty -> {
+        }
+    }
+
     Box(contentAlignment = Alignment.BottomCenter) {
         val scrollState = rememberScrollState()
         Column(

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -21,56 +22,83 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "temporary-id")
-const val TEMPORARY_ID = "TEMPORARY_ID"
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "init")
+const val USER_REP_ID = "USER_REP_ID"
+const val IS_WELCOME_SHOWN = "IS_WELCOME_SHOW"
 
 @HiltViewModel
 class DieterAppViewModel @Inject constructor(
     private val dieterRepository: DieterRepository,
 ) : ViewModel() {
-    private val temporaryIdKey = stringPreferencesKey(TEMPORARY_ID)
+    private val userRepKey = stringPreferencesKey(USER_REP_ID)
+    private val isWelcomeShownKey = booleanPreferencesKey(IS_WELCOME_SHOWN)
 
-    private val _temporaryIdState = MutableStateFlow<DataState<String>>(DataState.Empty)
+    private val _userRepIdState = MutableStateFlow<DataState<String>>(DataState.Empty)
 
-    val temporaryIdState: StateFlow<DataState<String>>
-        get() = _temporaryIdState
+    val userRepIdState: StateFlow<DataState<String>>
+        get() = _userRepIdState
+
+    private val _isWelcomeShownState = MutableStateFlow(false)
+    val isWelcomeShownState: StateFlow<Boolean>
+        get() = _isWelcomeShownState
 
     init {
-        _temporaryIdState.value = DataState.Loading(null)
+        _userRepIdState.value = DataState.Loading(null)
+
         viewModelScope.launch {
             // TODO: Remove bang operator
-            temporaryId()!!.collect { token ->
-                Log.d(TAG, "init: $token")
+            userRepId()!!.collect { token ->
                 if (token == null) {
                     val temporaryId = FirebaseIDGenerator.generateId()
-                    temporaryId(temporaryId)
+                    userRepId(temporaryId)
                     dieterRepository.temporaryId(temporaryId).collect {
                         when (it) {
-                            is DataState.Success -> _temporaryIdState.value =
-                                DataState.Success(temporaryId)
-                            is DataState.Error -> _temporaryIdState.value = DataState.Error(it.exception)
-                            else -> {}
+                            is DataState.Success ->
+                                _userRepIdState.value =
+                                    DataState.Success(temporaryId)
+                            is DataState.Error ->
+                                _userRepIdState.value =
+                                    DataState.Error(it.exception)
+                            else -> {
+                            }
                         }
                     }
                 } else {
-                    _temporaryIdState.value =
+                    _userRepIdState.value =
                         DataState.Success(token)
                 }
-
+            }
+        }
+        viewModelScope.launch {
+            isWelcomeShown()!!.collect {
+                Log.d(TAG, "init of app: $it")
+                _isWelcomeShownState.value = it ?: false
             }
         }
     }
 
-    private suspend fun temporaryId(id: String) {
+    private suspend fun userRepId(id: String) {
         DieterApplication.applicationContext()?.dataStore?.edit { values ->
-            values[temporaryIdKey] = id
+            values[userRepKey] = id
         }
     }
 
-    private fun temporaryId() = DieterApplication.applicationContext()?.dataStore?.data
+    private fun userRepId() = DieterApplication.applicationContext()?.dataStore?.data
         ?.map { preferences ->
-            preferences[temporaryIdKey]
+            preferences[userRepKey]
         }
+
+    fun isWelcomeShown(isIt: Boolean) {
+        Log.d(TAG, "isWelcomeShown: $isIt")
+        viewModelScope.launch {
+            DieterApplication.applicationContext()?.dataStore?.edit { values ->
+                values[isWelcomeShownKey] = isIt
+            }
+        }
+    }
+
+    private fun isWelcomeShown() =
+        DieterApplication.applicationContext()?.dataStore?.data?.map { preferences -> preferences[isWelcomeShownKey] }
 
     companion object {
         private val TAG = DieterAppViewModel::class.java.simpleName

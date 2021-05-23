@@ -24,7 +24,8 @@ object FirebaseIDGenerator {
         // timestamp to prevent collisions with other clients.  We store the last characters we
         // generated because in the event of a collision, we'll use those same characters except
         // "incremented" by one.
-        val lastRandChars: IntArray = IntArray(12)) {
+        val lastRandChars: IntArray = IntArray(12)
+    ) {
 
         // We don't want to use the array in our equals/hashCode
         override fun equals(other: Any?) = lastInstant == (other as? State)?.lastInstant

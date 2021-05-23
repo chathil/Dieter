@@ -54,7 +54,6 @@ import com.example.dieter.ui.component.DieterDefaultButton
 import com.example.dieter.ui.theme.AlphaNearTransparent
 import com.example.dieter.ui.theme.DieterTheme
 import com.example.dieter.utils.LocalSysUiController
-import com.example.dieter.utils.collect
 import com.example.dieter.vo.DataState
 import com.google.accompanist.glide.rememberGlidePainter
 import com.google.accompanist.insets.LocalWindowInsets
@@ -66,10 +65,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseUser
-import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-@InternalCoroutinesApi
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun WelcomeScreen(
@@ -100,7 +98,7 @@ fun WelcomeScreen(
                     .padding(16.dp)
             )
             AppNameHeader()
-            if(errorState)
+            if (errorState)
                 Text("Something went wrong")
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -115,8 +113,6 @@ fun WelcomeScreen(
                         2 -> SlideThree(page = currentPage)
                     }
                 }
-
-
 
                 // Start: Move all this to viewModel --------
                 val scope = rememberCoroutineScope()
@@ -162,29 +158,29 @@ fun WelcomeScreen(
 @Composable
 fun GlideGifImage(request: Int) {
     val requestManager = Glide.with(LocalContext.current).addDefaultRequestListener(object :
-        RequestListener<Any> {
-        override fun onLoadFailed(
-            e: GlideException?,
-            model: Any?,
-            target: Target<Any>?,
-            isFirstResource: Boolean
-        ): Boolean {
-            return false
-        }
-
-        override fun onResourceReady(
-            resource: Any?,
-            model: Any?,
-            target: Target<Any>?,
-            dataSource: DataSource?,
-            isFirstResource: Boolean
-        ): Boolean {
-            if (resource is GifDrawable) {
-                resource.setLoopCount(1)
+            RequestListener<Any> {
+            override fun onLoadFailed(
+                e: GlideException?,
+                model: Any?,
+                target: Target<Any>?,
+                isFirstResource: Boolean
+            ): Boolean {
+                return false
             }
-            return false
-        }
-    })
+
+            override fun onResourceReady(
+                resource: Any?,
+                model: Any?,
+                target: Target<Any>?,
+                dataSource: DataSource?,
+                isFirstResource: Boolean
+            ): Boolean {
+                if (resource is GifDrawable) {
+                    resource.setLoopCount(1)
+                }
+                return false
+            }
+        })
 
     Surface(
         Modifier

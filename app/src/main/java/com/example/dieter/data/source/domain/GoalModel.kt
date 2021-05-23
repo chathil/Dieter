@@ -1,8 +1,6 @@
-package com.example.dieter.data.source.firebase.request
+package com.example.dieter.data.source.domain
 
-import com.example.dieter.data.source.domain.GoalType
-
-data class SetGoalRequest(
+data class GoalModel(
     val target: GoalType,
     val age: Int,
     val isMale: Boolean,

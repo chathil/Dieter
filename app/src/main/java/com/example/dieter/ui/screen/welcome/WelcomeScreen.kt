@@ -54,7 +54,6 @@ import com.example.dieter.ui.component.DieterDefaultButton
 import com.example.dieter.ui.theme.AlphaNearTransparent
 import com.example.dieter.ui.theme.DieterTheme
 import com.example.dieter.utils.LocalSysUiController
-import com.example.dieter.utils.collect
 import com.example.dieter.vo.DataState
 import com.google.accompanist.glide.rememberGlidePainter
 import com.google.accompanist.insets.LocalWindowInsets
@@ -66,16 +65,16 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseUser
-import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-@InternalCoroutinesApi
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun WelcomeScreen(
     welcomeViewModel: WelcomeViewModel = viewModel(),
     welcomeFinished: () -> Unit,
-    navigateToHome: () -> Unit
+    navigateToHome: () -> Unit,
+    temporaryId: String
 ) {
     LocalSysUiController.current.setStatusBarColor(
         MaterialTheme.colors.background.copy(
@@ -84,6 +83,7 @@ fun WelcomeScreen(
     )
     val pagerState = rememberPagerState(pageCount = 3)
     var loginState by remember { mutableStateOf<DataState<FirebaseUser>>(DataState.Empty) }
+    var errorState by remember { mutableStateOf(false) }
     Scaffold {
         Column(
             modifier = Modifier
@@ -98,6 +98,8 @@ fun WelcomeScreen(
                     .padding(16.dp)
             )
             AppNameHeader()
+            if (errorState)
+                Text("Something went wrong")
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween
@@ -111,15 +113,31 @@ fun WelcomeScreen(
                         2 -> SlideThree(page = currentPage)
                     }
                 }
+
+                // Start: Move all this to viewModel --------
+                val scope = rememberCoroutineScope()
                 when (loginState) {
-                    is DataState.Success -> navigateToHome()
+                    is DataState.Success -> {
+                        scope.launch {
+                            welcomeViewModel.linkUserDevice(
+                                (loginState as DataState.Success<FirebaseUser>).data.uid,
+                                temporaryId
+                            ).collect { isAdded ->
+                                when (isAdded) {
+                                    is DataState.Success -> navigateToHome()
+                                    is DataState.Error -> errorState = true
+                                    else -> {
+                                    }
+                                }
+                            }
+                        }
+                    }
                     is DataState.Error -> Log.e("WelcomeScreen", "WelcomeScreen: $loginState")
                     is DataState.Loading -> Log.i("WelcomeScreen", "WelcomeScreen: Loading...")
                     is DataState.Empty -> Log.i("WelcomeScreen", "WelcomeScreen: Loading...")
                 }
 
                 /* TODO: https://google.github.io/accompanist/pager/ */
-                val scope = rememberCoroutineScope()
                 SlideNavigation(
                     currentPage = currentPage,
                     navigateToHome = navigateToHome,
@@ -131,6 +149,7 @@ fun WelcomeScreen(
                         }
                     }
                 )
+                // End: Move all this to viewModel ----------
             }
         }
     }

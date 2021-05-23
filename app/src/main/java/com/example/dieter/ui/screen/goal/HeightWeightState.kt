@@ -17,3 +17,5 @@ private fun isHeightValid(height: String) = height.toIntOrNull() ?: 0 > 120
 // TODO: Might be offensive?
 @Suppress("UNUSED_PARAMETER")
 private fun heightValidationError(height: String): String = "Bad input"
+
+class TargetWeightState : TextFieldState(validator = ::isWeightValid, errorFor = ::weightValidationError)

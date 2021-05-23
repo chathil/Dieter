@@ -15,6 +15,8 @@ class WelcomeViewModel @Inject constructor(
     fun authWithGoogle(idToken: String) =
         dieterRepository.authWithGoogle(idToken)
 
+    fun linkUserDevice(userId: String, temporaryId: String) = dieterRepository.linkUserDevice(userId, temporaryId)
+
     companion object {
         private val TAG = WelcomeViewModel::class.java.simpleName
     }

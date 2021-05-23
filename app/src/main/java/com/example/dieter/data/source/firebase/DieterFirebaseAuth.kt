@@ -28,21 +28,9 @@ class DieterFirebaseAuth @Inject constructor(
     private val auth: FirebaseAuth
 ) {
 
-    // @OptIn(ExperimentalCoroutinesApi::class)
-    // fun authWithGoogle(idToken: String): Flow<DataState<FirebaseUser>> = flow {
-    //     emit(DataState.Loading(null))
-    //     val s =  try {
-    //         val credential = GoogleAuthProvider.getCredential(idToken, null)
-    //         val data = auth.signInWithCredential(credential).await()
-    //         Log.d(TAG, "authWithGoogle: ${data.user}")
-    //         emit(DataState.Success(data.user))
-    //     }catch(e: Exception) {
-    //         emit(DataState.Error(e.message ?: "Unknown Error"))
-    //     }
-    // }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     fun authWithGoogle(idToken: String): Flow<DataState<FirebaseUser>> = callbackFlow {
+        offer(DataState.Loading(null))
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential).addOnSuccessListener {
             if (!isClosedForSend)

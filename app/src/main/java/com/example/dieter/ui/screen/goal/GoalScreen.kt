@@ -2,6 +2,8 @@ package com.example.dieter.ui.screen.goal
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,14 +16,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
-import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,6 +56,7 @@ import com.example.dieter.ui.theme.DieterShapes
 import com.example.dieter.ui.theme.DieterTheme
 import com.example.dieter.ui.theme.GreenPrimary
 import com.example.dieter.ui.theme.Purple500
+import com.example.dieter.vo.DataState
 import com.google.accompanist.insets.statusBarsPadding
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -64,23 +67,37 @@ import kotlinx.coroutines.launch
 @Composable
 fun GoalScreen(
     viewModel: GoalViewModel,
-    goUp: () -> Unit = {}
+    goUp: () -> Unit = {},
+    goHome: () -> Unit = {},
+    userRepId: String
 ) {
     val pagerState = rememberPagerState(pageCount = 2)
     val heightState = remember { HeightState() }
     val weightState = remember { WeightState() }
-    var ageState = remember { AgeState() }
+    val ageState = remember { AgeState() }
+    val targetWeightState = remember { WeightState() }
     val selectedGoal = remember { mutableStateOf<GoalType?>(null) }
     var isMale by remember { mutableStateOf<Boolean?>(null) }
-
+    val savingGoalState by viewModel.saveGoalState.collectAsState()
+    var savingGoalMessage by remember { mutableStateOf("") }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .statusBarsPadding()
+            .background(MaterialTheme.colors.background)
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.size(24.dp))
         AppNameHeader()
+        when (savingGoalState) {
+            is DataState.Success -> goHome()
+            is DataState.Error -> savingGoalMessage = "Something went wrong"
+            is DataState.Loading -> savingGoalMessage = "Saving..."
+            else -> {
+            }
+        }
+        if (savingGoalMessage.isNotEmpty())
+            Text(savingGoalMessage)
         HorizontalPager(
             state = pagerState,
             dragEnabled = false,
@@ -92,7 +109,7 @@ fun GoalScreen(
                     heightState = heightState,
                     weightState = weightState
                 )
-                1 -> Slide2(ageState = ageState, onSexSelected = { isMale = it })
+                1 -> Slide2(ageState = ageState, targetWeightState = targetWeightState, onSexSelected = { isMale = it })
             }
         }
         val scrollScope = rememberCoroutineScope()
@@ -105,11 +122,13 @@ fun GoalScreen(
                     }
                     1 -> selectedGoal.value?.let {
                         viewModel.save(
+                            userRepId = userRepId,
                             selectedGoal = it,
                             age = ageState.text.toInt(),
                             isMale = isMale ?: true,
                             heightState.text.toInt(),
-                            weightState.text.toInt()
+                            weightState.text.toInt(),
+                            targetWeightState.text.toInt()
                         )
                     }
                 }
@@ -162,7 +181,7 @@ private fun Slide1(
 }
 
 @Composable
-fun Slide2(onSexSelected: (Boolean) -> Unit, ageState: AgeState = remember { AgeState() }) {
+fun Slide2(onSexSelected: (Boolean) -> Unit, ageState: AgeState = remember { AgeState() }, targetWeightState: WeightState = remember { WeightState() }) {
     Column {
         Text(
             "Extra information for the best recommendation…", style = MaterialTheme.typography.h6
@@ -183,6 +202,7 @@ fun Slide2(onSexSelected: (Boolean) -> Unit, ageState: AgeState = remember { Age
                 Age(ageState = ageState)
             }
         }
+        TargetWeight(targetWeightState = targetWeightState)
         Spacer(Modifier.size(8.dp))
         SexCard(onSexSelected = onSexSelected)
     }
@@ -285,16 +305,18 @@ private fun HeightWeightField(
     modifier: Modifier = Modifier,
     state: TextFieldState,
     imeAction: ImeAction = ImeAction.None,
-    label: @Composable (() -> Unit)
+    label: @Composable (() -> Unit)?
 ) {
     Column {
-        OutlinedTextField(
+        TextField(
             value = state.text,
             onValueChange = {
                 state.text = it
             },
             label = {
-                label()
+                if (label != null) {
+                    label()
+                }
             },
             modifier = modifier
                 .onFocusChanged { focusState ->
@@ -318,6 +340,7 @@ private fun HeightWeightField(
 
 @Composable
 private fun SexCard(modifier: Modifier = Modifier, onSexSelected: (Boolean) -> Unit = {}) {
+    var isMale by remember { mutableStateOf<Boolean?>(null) }
     Surface(
         border = BorderStroke(2.dp, Purple500),
         modifier = modifier
@@ -333,12 +356,43 @@ private fun SexCard(modifier: Modifier = Modifier, onSexSelected: (Boolean) -> U
                 )
             }
             Row {
-                Button(onClick = { onSexSelected(true) }) {
-                    Text("Male")
+                Row(
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .background(
+                            if (isMale == true) MaterialTheme.colors.primary else MaterialTheme.colors.background,
+                            DieterShapes.small
+                        )
+                        .border(2.dp, MaterialTheme.colors.primary, DieterShapes.small)
+                        .clickable {
+                            isMale = true
+                            onSexSelected(true)
+                        }
+                ) {
+                    Text(
+                        "Male",
+                        style = MaterialTheme.typography.button,
+                        modifier = Modifier.padding(16.dp)
+                    )
                 }
-                Spacer(Modifier.size(16.dp))
-                Button(onClick = { onSexSelected(false) }) {
-                    Text("Female")
+                Row(
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .background(
+                            if (isMale == false) MaterialTheme.colors.primary else MaterialTheme.colors.background,
+                            DieterShapes.small
+                        )
+                        .border(2.dp, MaterialTheme.colors.primary, DieterShapes.small)
+                        .clickable {
+                            isMale = false
+                            onSexSelected(false)
+                        }
+                ) {
+                    Text(
+                        "Female",
+                        style = MaterialTheme.typography.button,
+                        modifier = Modifier.padding(16.dp)
+                    )
                 }
             }
         }
@@ -386,6 +440,30 @@ private fun BottomNavigation(
                     Icon(imageVector = Icons.Rounded.ChevronRight, contentDescription = "next")
                 }
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun TargetWeight(targetWeightState: WeightState = remember { WeightState() }) {
+    Surface(
+        border = BorderStroke(2.dp, MaterialTheme.colors.primary),
+        modifier = Modifier
+            .clip(DieterShapes.small)
+            .fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Target Weight", style = MaterialTheme.typography.subtitle2)
+            Text(
+                "Weight you're trying to achieve",
+                style = MaterialTheme.typography.caption
+            )
+            HeightWeightField(
+                state = targetWeightState,
+                label = null,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

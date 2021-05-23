@@ -2,7 +2,6 @@ package com.example.dieter
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,8 +24,6 @@ import com.example.dieter.ui.screen.search.ingredient.SearchIngredientScreen
 import com.example.dieter.ui.screen.search.ingredient.SearchIngredientViewModel
 import com.example.dieter.ui.screen.welcome.WelcomeScreen
 import com.example.dieter.ui.screen.welcome.WelcomeViewModel
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.InternalCoroutinesApi
 
 /**
@@ -47,14 +44,13 @@ object MainDestinations {
 @Composable
 fun NavGraph(
     modifier: Modifier = Modifier,
+    userRepId: String,
     finishActivity: () -> Unit = {},
+    welcomeShown: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
     startDestination: String = MainDestinations.HOME_ROUTE,
-    showWelcomeInitially: Boolean = Firebase.auth.currentUser == null
+    showWelcomeInitially: Boolean
 ) {
-    val welcomeFinished = remember(showWelcomeInitially) {
-        mutableStateOf(!showWelcomeInitially)
-    }
 
     val actions = remember(navController) { MainActions(navController) }
 
@@ -68,12 +64,13 @@ fun NavGraph(
                 viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
             WelcomeScreen(
                 welcomeViewModel = welcomeViewModel,
+                temporaryId = userRepId,
                 welcomeFinished = {
-                    welcomeFinished.value = true
                     actions.welcomeFinished()
                 },
                 navigateToHome = {
-                    actions.welcomeToHome()
+                    actions.toHome()
+                    welcomeShown()
                 }
             )
         }
@@ -87,6 +84,7 @@ fun NavGraph(
                 viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
             HomeScreen(
                 homeViewModel = homeViewModel,
+                temporaryId = userRepId,
                 navigateToCalculateNutrients = actions.addIngredients,
                 setGoal = actions.setGoal
             )
@@ -139,7 +137,7 @@ fun NavGraph(
                     LocalContext.current, it
                 )
             )
-            GoalScreen(viewModel = viewModel, goUp = actions.upPress)
+            GoalScreen(viewModel = viewModel, userRepId = userRepId, goUp = actions.upPress, goHome = actions.toHome)
         }
 
         // Reference for navigation with parameters
@@ -179,7 +177,7 @@ class MainActions(navController: NavHostController) {
     val welcomeFinished: () -> Unit = {
         navController.popBackStack()
     }
-    val welcomeToHome: () -> Unit = {
+    val toHome: () -> Unit = {
         navController.navigate(MainDestinations.HOME_ROUTE)
     }
     val addIngredients: () -> Unit = {

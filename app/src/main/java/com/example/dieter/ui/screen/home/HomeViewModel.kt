@@ -1,13 +1,20 @@
 package com.example.dieter.ui.screen.home
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.dieter.data.source.DieterRepository
 import com.example.dieter.data.source.EdamamRepository
 import com.example.dieter.data.source.domain.BodyWeightModel
 import com.example.dieter.data.source.domain.FoodType
+import com.example.dieter.data.source.domain.GoalModel
 import com.example.dieter.data.source.domain.NutrientModel
 import com.example.dieter.data.source.domain.TodaysFoodModel
+import com.example.dieter.vo.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
 
@@ -16,6 +23,13 @@ class HomeViewModel @Inject constructor(
     private val dieterRepository: DieterRepository,
     edamamRepository: EdamamRepository
 ) : ViewModel() {
+
+    init {
+    }
+
+    private val _goal = MutableStateFlow<DataState<GoalModel?>>(DataState.Empty)
+    val goal: StateFlow<DataState<GoalModel?>>
+        get() = _goal
 
     val nutrients = listOf(
         NutrientModel("Calorie", 1437, 2000, "kcal"),
@@ -42,12 +56,26 @@ class HomeViewModel @Inject constructor(
     )
 
     val todaysFoods = listOf(
-        TodaysFoodModel(FoodType.BREAKFAST, "Egg Sandwich", "fake_food.jpg", 15, Date(1619289713000)),
+        TodaysFoodModel(
+            FoodType.BREAKFAST,
+            "Egg Sandwich",
+            "fake_food.jpg",
+            15,
+            Date(1619289713000)
+        ),
         TodaysFoodModel(FoodType.BRUNCH, "Egg Sandwich", "fake_food.jpg", 15, Date(1619203313000)),
         TodaysFoodModel(FoodType.LUNCH, "Egg Sandwich", "fake_food.jpg", 15, Date(1619203313000)),
         TodaysFoodModel(FoodType.DINNER, "Egg Sandwich", "fake_food.jpg", 15, Date(1618944113000)),
         TodaysFoodModel(FoodType.DRINK, "Egg Sandwich", "fake_food.jpg", 15, Date(1618944113000)),
     )
+
+    fun goal(userRepId: String) {
+        viewModelScope.launch {
+            dieterRepository.goal(userRepId).collect {
+                _goal.value = it
+            }
+        }
+    }
 
     companion object {
         private val TAG = HomeViewModel::class.java.simpleName

@@ -12,5 +12,6 @@ class DieterApplication : Application() {
     companion object {
         private var instance: DieterApplication? = null
         fun applicationContext() = instance
+        private val TAG = DieterApplication::class.java.simpleName
     }
 }

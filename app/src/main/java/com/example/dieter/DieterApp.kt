@@ -8,7 +8,12 @@ import com.example.dieter.ui.theme.DieterTheme
 import com.google.accompanist.insets.ProvideWindowInsets
 
 @Composable
-fun DieterApp(finishActivity: () -> Unit) {
+fun DieterApp(
+    userRepId: String,
+    showWelcomeInitially: Boolean,
+    welcomeShown: () -> Unit,
+    finishActivity: () -> Unit
+) {
     ProvideWindowInsets {
         DieterTheme {
             // A surface container using the 'background' color from the theme
@@ -16,6 +21,9 @@ fun DieterApp(finishActivity: () -> Unit) {
 
             Surface(color = MaterialTheme.colors.background) {
                 NavGraph(
+                    userRepId = userRepId,
+                    showWelcomeInitially = showWelcomeInitially,
+                    welcomeShown = welcomeShown,
                     finishActivity = finishActivity,
                     navController = navController,
                 )

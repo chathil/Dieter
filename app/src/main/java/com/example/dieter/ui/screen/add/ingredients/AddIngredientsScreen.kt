@@ -310,6 +310,7 @@ private fun IngredientCardPreview() {
                 IngredientModel(
                     ")",
                     "Broccoli",
+                    0f,
                     mapOf(
                         NutrientType.ENERC_KCAL to 9f,
                         NutrientType.FIBTG to 10f,

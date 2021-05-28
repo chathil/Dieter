@@ -126,8 +126,11 @@ fun NavGraph(
             CalculateScreen(
                 viewModel = viewModel,
                 appState = appState,
+                userRepId = userRepId,
                 goUp = actions.upPress,
-                save = { /* TODO: Go back home and clear backstack */ }
+                save = {
+                    actions.toHome()
+                }
             )
         }
 
@@ -137,7 +140,12 @@ fun NavGraph(
                     LocalContext.current, it
                 )
             )
-            GoalScreen(viewModel = viewModel, userRepId = userRepId, goUp = actions.upPress, goHome = actions.toHome)
+            GoalScreen(
+                viewModel = viewModel,
+                userRepId = userRepId,
+                goUp = actions.upPress,
+                goHome = actions.toHome
+            )
         }
 
         // Reference for navigation with parameters

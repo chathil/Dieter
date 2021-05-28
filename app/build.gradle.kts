@@ -32,6 +32,7 @@ android {
         }
         buildConfigField("String", "EDAMAM_API_KEY", versionProperties.getProperty("EDAMAM_API_KEY"))
         buildConfigField("String", "EDAMAM_APP_ID", versionProperties.getProperty("EDAMAM_APP_ID"))
+        buildConfigField("Boolean", "EMULATE_SERVER", versionProperties.getProperty("EMULATE_SERVER"))
     }
 
     buildTypes {

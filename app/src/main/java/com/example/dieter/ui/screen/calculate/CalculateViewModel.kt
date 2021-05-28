@@ -1,11 +1,15 @@
 package com.example.dieter.ui.screen.calculate
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.dieter.data.source.DieterRepository
 import com.example.dieter.data.source.EdamamRepository
 import com.example.dieter.data.source.domain.DetailIngredientModel
+import com.example.dieter.data.source.domain.FoodType
 import com.example.dieter.data.source.domain.IngredientModel
 import com.example.dieter.data.source.domain.NutrientType
+import com.example.dieter.data.source.domain.SaveFoodModel
 import com.example.dieter.vo.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CalculateViewModel @Inject constructor(
     private val edamamRepository: EdamamRepository,
-    private val dieterRepository: EdamamRepository,
+    private val dieterRepository: DieterRepository,
 ) : ViewModel() {
 
     private val fakeSummary = mapOf(
@@ -29,15 +33,16 @@ class CalculateViewModel @Inject constructor(
     )
 
     private val fakeIngredientModel = IngredientModel(
-        "01ff", "Broccoli",
-        mapOf(
+        id = "01ff", label = "Broccoli",
+        weight = 56.0f,
+        nutrients = mapOf(
             NutrientType.ENERC_KCAL to 9f,
             NutrientType.FIBTG to 10f,
             NutrientType.CA to 2f,
             NutrientType.FAT to 39f,
             NutrientType.P to 45f
         ),
-        "Meal", "Meal Label", emptyList(), null
+        category = "Meal", categoryLabel = "Meal Label", measures = emptyList(), image = null
     )
     private val fakeDetailSuccess =
         DataState.Success(DetailIngredientModel(listOf(), listOf(), listOf(), fakeSummary))
@@ -55,15 +60,35 @@ class CalculateViewModel @Inject constructor(
     val state: StateFlow<Map<IngredientModel, DataState<DetailIngredientModel>>>
         get() = _state
 
+    private val _saveFoodState = MutableStateFlow<DataState<Boolean>>(DataState.Loading(null))
+    val saveFoodState: StateFlow<DataState<Boolean>>
+        get() = _saveFoodState
+
     /**
      * Add summary to firebase
      */
-    fun saveToFirebase() {}
+    fun saveToFirebase(userRepId: String, name: String, type: FoodType) {
+        val summary = SaveFoodModel.SaveSummaryModel(name, type, summaryState.value)
+        val saveFood = SaveFoodModel(
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            summary,
+            fakeEachIngredient.map { (k, v) -> k to v.data }.toMap()
+        )
+        // forward to firebase
+        viewModelScope.launch {
+            dieterRepository.saveFood(userRepId, saveFood).collect {
+                Log.d(TAG, "saveToFirebase: $it")
+                _saveFoodState.value = it
+            }
+        }
+    }
 
     /**
      * Sum everything and save it to summary state
      */
-    fun review() {
+    private fun review() {
     }
 
     fun details(ingredients: List<IngredientModel>) {
@@ -82,5 +107,9 @@ class CalculateViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    companion object {
+        val TAG = CalculateViewModel::class.java.simpleName
     }
 }

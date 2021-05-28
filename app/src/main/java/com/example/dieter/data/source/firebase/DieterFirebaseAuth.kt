@@ -1,6 +1,8 @@
 package com.example.dieter.data.source.firebase
 
 import android.util.Log
+import com.example.dieter.BuildConfig
+import com.example.dieter.utils.EmulatorHost
 import com.example.dieter.vo.DataState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -20,8 +22,15 @@ import javax.inject.Inject
 @InstallIn(SingletonComponent::class)
 @Module
 class DieterFirebaseAuthModule {
+    private val useEmulator = BuildConfig.EMULATE_SERVER
+
     @Provides
-    fun provideFirebaseAuth() = Firebase.auth
+    fun provideFirebaseAuth(): FirebaseAuth {
+        val auth = Firebase.auth
+        if (useEmulator)
+            auth.useEmulator(EmulatorHost.ip, EmulatorHost.authPort)
+        return auth
+    }
 }
 
 class DieterFirebaseAuth @Inject constructor(
@@ -42,7 +51,7 @@ class DieterFirebaseAuth @Inject constructor(
             close(it)
         }
         awaitClose {
-            Log.e(TAG, "authWithGoogle: CLOSE",)
+            Log.e(TAG, "authWithGoogle: CLOSE")
         }
     }
 

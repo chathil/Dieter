@@ -193,6 +193,7 @@ private fun IngredientCardPreview() {
                 ingredientModel = IngredientModel(
                     ")",
                     "Broccoli",
+                    weight = 9f,
                     mapOf(
                         NutrientType.ENERC_KCAL to 9f,
                         NutrientType.FIBTG to 10f,

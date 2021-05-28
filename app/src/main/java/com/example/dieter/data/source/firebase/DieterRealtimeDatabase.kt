@@ -1,8 +1,11 @@
 package com.example.dieter.data.source.firebase
 
 import android.util.Log
+import com.example.dieter.BuildConfig
+import com.example.dieter.data.source.firebase.request.SaveFoodRequest
 import com.example.dieter.data.source.firebase.request.SetGoalRequest
 import com.example.dieter.data.source.firebase.response.GoalResponse
+import com.example.dieter.utils.EmulatorHost
 import com.example.dieter.vo.DataState
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ktx.database
@@ -20,8 +23,14 @@ import javax.inject.Inject
 @Module
 @InstallIn(SingletonComponent::class)
 class FirebaseDatabaseModule {
+    private val useEmulator = BuildConfig.EMULATE_SERVER
     @Provides
-    fun provideFirebaseRootRef() = Firebase.database.reference
+    fun provideFirebaseRootRef(): DatabaseReference {
+        val database = Firebase.database
+        if (useEmulator)
+            database.useEmulator(EmulatorHost.ip, EmulatorHost.databasePort)
+        return database.reference
+    }
 }
 
 // https://firebase.google.com/docs/database/android/read-and-write
@@ -84,11 +93,28 @@ class DieterRealtimeDatabase @Inject constructor(
         rootRef.child("user_goals").child(userRepId).orderByChild("addedAt").limitToFirst(1).get()
             .addOnSuccessListener {
                 if (!isClosedForSend)
-                // TODO: remove bang operator
+                // TODO: if goal doesn't exist, tell the ui.
                     it.getValue<GoalResponse>()?.let { res ->
                         Log.d(TAG, "goalInn: $res")
                         offer(DataState.Success(res))
                     }
+                close()
+            }.addOnFailureListener {
+                if (!isClosedForSend)
+                    offer(DataState.Error(it.message!!))
+                close(it)
+            }
+        awaitClose {
+            Log.e(TAG, "setToken: CLOSE")
+        }
+    }
+
+    fun saveFood(userRepId: String, request: SaveFoodRequest) = callbackFlow {
+        offer(DataState.Loading(null))
+        rootRef.child("user_intakes").child(userRepId).push().setValue(request)
+            .addOnSuccessListener {
+                if (!isClosedForSend)
+                    offer(DataState.Success(true))
                 close()
             }.addOnFailureListener {
                 if (!isClosedForSend)

@@ -1,6 +1,6 @@
 package com.example.dieter.data.source
 
-import android.util.Log
+import com.example.dieter.data.source.domain.SaveFoodModel
 import com.example.dieter.data.source.domain.SetGoalModel
 import com.example.dieter.data.source.domain.asRequest
 import com.example.dieter.data.source.firebase.DieterFirebaseAuth
@@ -22,7 +22,6 @@ class DieterRepository @Inject constructor(
         realtimeDatabase.setGoal(setGoalModel.userRepId, setGoalModel.asRequest())
 
     override fun goal(userRepId: String) = realtimeDatabase.goal(userRepId).map {
-        Log.d(TAG, "goal: $it")
         when (it) {
             is DataState.Success -> {
                 if (it.data.target == null)
@@ -39,6 +38,16 @@ class DieterRepository @Inject constructor(
     override fun temporaryId(token: String) = realtimeDatabase.temporaryId(token)
     override fun linkUserDevice(userId: String, temporaryId: String) =
         realtimeDatabase.linkUserDevice(userId, temporaryId)
+
+    override fun saveFood(userRepId: String, food: SaveFoodModel) =
+        realtimeDatabase.saveFood(userRepId, food.asRequest()).map {
+            when (it) {
+                is DataState.Success -> DataState.Success(it.data)
+                is DataState.Error -> DataState.Error(it.exception)
+                is DataState.Loading -> DataState.Loading(null)
+                is DataState.Empty -> DataState.Empty
+            }
+        }
 
     companion object {
         private val TAG = DieterRepository::class.java.simpleName

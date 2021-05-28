@@ -4,10 +4,14 @@ import android.util.Log
 import com.example.dieter.BuildConfig
 import com.example.dieter.data.source.firebase.request.SaveFoodRequest
 import com.example.dieter.data.source.firebase.request.SetGoalRequest
+import com.example.dieter.data.source.firebase.response.FoodResponse
 import com.example.dieter.data.source.firebase.response.GoalResponse
 import com.example.dieter.utils.EmulatorHost
 import com.example.dieter.vo.DataState
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
@@ -18,12 +22,15 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
+import java.text.SimpleDateFormat
+import java.util.Locale
 import javax.inject.Inject
 
 @Module
 @InstallIn(SingletonComponent::class)
 class FirebaseDatabaseModule {
     private val useEmulator = BuildConfig.EMULATE_SERVER
+
     @Provides
     fun provideFirebaseRootRef(): DatabaseReference {
         val database = Firebase.database
@@ -92,12 +99,17 @@ class DieterRealtimeDatabase @Inject constructor(
         offer(DataState.Loading(null))
         rootRef.child("user_goals").child(userRepId).orderByChild("addedAt").limitToFirst(1).get()
             .addOnSuccessListener {
-                if (!isClosedForSend)
-                // TODO: if goal doesn't exist, tell the ui.
-                    it.getValue<GoalResponse>()?.let { res ->
-                        Log.d(TAG, "goalInn: $res")
-                        offer(DataState.Success(res))
+                if (!isClosedForSend) {
+                    val rawres = it.getValue<GoalResponse>()
+                    if (rawres != null) {
+                        rawres.let { res ->
+                            Log.d(TAG, "goalInn: $res")
+                            offer(DataState.Success(res))
+                        }
+                    } else {
+                        offer(DataState.Empty)
                     }
+                }
                 close()
             }.addOnFailureListener {
                 if (!isClosedForSend)
@@ -123,6 +135,74 @@ class DieterRealtimeDatabase @Inject constructor(
             }
         awaitClose {
             Log.e(TAG, "setToken: CLOSE")
+        }
+    }
+
+    fun todayNutrient(userRepId: String) = callbackFlow<DataState<Map<String, Float>>> {
+        val nowString = SimpleDateFormat(
+            "dd-MM-yyyy",
+            Locale.UK
+        ).format(java.util.Date(System.currentTimeMillis()))
+
+        offer(DataState.Loading(null))
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (!isClosedForSend) {
+                    val res = snapshot.getValue<Map<String, Float>>() ?: emptyMap()
+                    offer(DataState.Success(res))
+                }
+                close()
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                if (!isClosedForSend)
+                    offer(DataState.Error(error.message))
+                close(error.toException().cause)
+            }
+        }
+
+        rootRef.child("user_daily").child(userRepId).child("nutrients").child(nowString)
+            .addValueEventListener(listener)
+
+        awaitClose {
+            Log.e(TAG, "todayNutrient: CLOSE")
+        }
+    }
+
+    fun todayFood(userRepId: String) = callbackFlow<DataState<List<Pair<String, FoodResponse>>>> {
+        offer(DataState.Loading(null))
+
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (!isClosedForSend) {
+                    // TODO: find a way to remove bang operator
+                    Log.d(TAG, "onDataChange: ${snapshot.key} ${snapshot.childrenCount}")
+                    if (snapshot.hasChildren()) {
+                        val result =
+                            snapshot.children.map { child -> child.key!! to child.getValue<FoodResponse>()!! }
+                        offer(DataState.Success(result))
+                    } else {
+                        offer(DataState.Empty)
+                    }
+                }
+                close()
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                if (!isClosedForSend)
+                    offer(DataState.Error(error.message))
+                close(error.toException().cause)
+            }
+        }
+
+        val nowString = SimpleDateFormat(
+            "dd-MM-yyyy",
+            Locale.UK
+        ).format(java.util.Date(System.currentTimeMillis()))
+        rootRef.child("user_intakes").child(userRepId).orderByChild("date").equalTo(nowString)
+            .addValueEventListener(listener)
+        awaitClose {
+            Log.e(TAG, "todayFood: CLOSE")
         }
     }
 

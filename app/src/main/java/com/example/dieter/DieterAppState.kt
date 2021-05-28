@@ -1,5 +1,6 @@
 package com.example.dieter
 
+import android.net.Uri
 import android.util.Log
 import com.example.dieter.data.source.domain.IngredientModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,8 @@ class DieterAppState {
 
     val ingredientsState: StateFlow<Map<IngredientModel, Int>>
         get() = _ingredientsState
+
+    var photoUri: Uri? = null
 
     fun addIngredient(ingredient: IngredientModel) {
         if (_ingredientsState.value.containsKey(ingredient)) {

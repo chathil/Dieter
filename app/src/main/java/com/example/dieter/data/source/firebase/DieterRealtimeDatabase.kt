@@ -2,8 +2,10 @@ package com.example.dieter.data.source.firebase
 
 import android.util.Log
 import com.example.dieter.BuildConfig
+import com.example.dieter.data.source.firebase.request.BodyWeightRequest
 import com.example.dieter.data.source.firebase.request.SaveFoodRequest
 import com.example.dieter.data.source.firebase.request.SetGoalRequest
+import com.example.dieter.data.source.firebase.response.BodyWeightResponse
 import com.example.dieter.data.source.firebase.response.FoodResponse
 import com.example.dieter.data.source.firebase.response.GoalResponse
 import com.example.dieter.utils.EmulatorHost
@@ -176,7 +178,6 @@ class DieterRealtimeDatabase @Inject constructor(
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (!isClosedForSend) {
                     // TODO: find a way to remove bang operator
-                    Log.d(TAG, "onDataChange: ${snapshot.key} ${snapshot.childrenCount}")
                     if (snapshot.hasChildren()) {
                         val result =
                             snapshot.children.map { child -> child.key!! to child.getValue<FoodResponse>()!! }
@@ -204,6 +205,60 @@ class DieterRealtimeDatabase @Inject constructor(
         awaitClose {
             Log.e(TAG, "todayFood: CLOSE")
         }
+    }
+
+    fun newBodyWeight(userRepId: String, request: BodyWeightRequest) = callbackFlow {
+        offer(DataState.Loading(true))
+        rootRef.child("user_weights").child(userRepId).push().setValue(request)
+            .addOnSuccessListener {
+                if (!isClosedForSend)
+                    offer(DataState.Success(true))
+                close()
+            }.addOnFailureListener {
+                if (!isClosedForSend)
+                    offer(DataState.Error(it.message!!))
+                close(it)
+            }
+        awaitClose {
+            Log.e(TAG, "newBodyWeight: CLOSE")
+        }
+    }
+
+    fun bodyWeights(userRepId: String) =
+        callbackFlow<DataState<List<Pair<String, BodyWeightResponse>>>> {
+            offer(DataState.Loading(null))
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (!isClosedForSend) {
+                        // TODO: find a way to remove bang operator
+                        if (snapshot.hasChildren()) {
+                            val result =
+                                snapshot.children.map { child -> child.key!! to child.getValue<BodyWeightResponse>()!! }
+                            offer(DataState.Success(result))
+                        } else {
+                            offer(DataState.Empty)
+                        }
+                    }
+                    close()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    if (!isClosedForSend)
+                        offer(DataState.Error(error.message))
+                    close(error.toException().cause)
+                }
+            }
+            rootRef.child("user_weights").child(userRepId).orderByChild("addedAt")
+                .addValueEventListener(listener)
+            awaitClose {
+                Log.e(TAG, "bodyWeights: CLOSE")
+            }
+        }
+
+    fun clearAllWeights(userRepId: String) {
+    }
+
+    fun deleteWeight(userRepId: String, weighId: String) {
     }
 
     companion object {

@@ -1,5 +1,6 @@
 package com.example.dieter.ui.screen.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dieter.data.source.DieterRepository
@@ -8,6 +9,7 @@ import com.example.dieter.data.source.domain.BodyWeightModel
 import com.example.dieter.data.source.domain.GoalModel
 import com.example.dieter.data.source.domain.NutrientModel
 import com.example.dieter.data.source.domain.NutrientType
+import com.example.dieter.data.source.domain.SetBodyWeightModel
 import com.example.dieter.data.source.domain.TodaysFoodModel
 import com.example.dieter.vo.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,17 +45,22 @@ class HomeViewModel @Inject constructor(
     val todaysFood: StateFlow<List<TodaysFoodModel>>
         get() = _todaysFood
 
-    val bodyWeightEntries = listOf(
-        BodyWeightModel(56, 70, Date(1618512113000)),
-        BodyWeightModel(60, 70, Date(1618598513000)),
-        BodyWeightModel(61, 70, Date(1618684913000)),
-        BodyWeightModel(67, 70, Date(1618771313000)),
-        BodyWeightModel(70, 70, Date(1618944113000)),
-        BodyWeightModel(70, 70, Date(1619030513000)),
-        BodyWeightModel(70, 70, Date(1619116913000)),
-        BodyWeightModel(70, 70, Date(1619203313000)),
-        BodyWeightModel(69, 70, Date(1619289713000))
-    )
+    private val _bodyWeightEntries = MutableStateFlow<List<BodyWeightModel>>(emptyList())
+
+    val bodyWeightEntries: StateFlow<List<BodyWeightModel>>
+        get() = _bodyWeightEntries
+
+    // val bodyWeightEntries = listOf(
+    //     BodyWeightModel("", 56, 70, Date(1618512113000)),
+    //     BodyWeightModel("", 60, 70, Date(1618598513000)),
+    //     BodyWeightModel("", 61, 70, Date(1618684913000)),
+    //     BodyWeightModel("", 67, 70, Date(1618771313000)),
+    //     BodyWeightModel("", 70, 70, Date(1618944113000)),
+    //     BodyWeightModel("", 70, 70, Date(1619030513000)),
+    //     BodyWeightModel("", 70, 70, Date(1619116913000)),
+    //     BodyWeightModel("", 70, 70, Date(1619203313000)),
+    //     BodyWeightModel("", 69, 70, Date(1619289713000))
+    // )
 
     fun todayNutrient(userRepId: String) {
         val mapped = NutrientType.values().map { it.nutrientName to it }.toMap()
@@ -92,6 +98,27 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             dieterRepository.goal(userRepId).collect {
                 _goal.value = it
+            }
+        }
+    }
+
+    fun newBodyWeight(userRepId: String, data: SetBodyWeightModel) {
+        viewModelScope.launch {
+            dieterRepository.newBodyWeight(userRepId, data).collect {
+                Log.d(TAG, "newBodyWeight: $it")
+                when (it) {
+                    is DataState.Success -> bodyWeights(userRepId)
+                }
+            }
+        }
+    }
+
+    fun bodyWeights(userRepId: String) {
+        viewModelScope.launch {
+            dieterRepository.bodyWeights(userRepId).collect {
+                when (it) {
+                    is DataState.Success -> _bodyWeightEntries.value = it.data
+                }
             }
         }
     }

@@ -80,6 +80,7 @@ fun GoalScreen(
     var isMale by remember { mutableStateOf<Boolean?>(null) }
     val savingGoalState by viewModel.saveGoalState.collectAsState()
     var savingGoalMessage by remember { mutableStateOf("") }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -109,7 +110,11 @@ fun GoalScreen(
                     heightState = heightState,
                     weightState = weightState
                 )
-                1 -> Slide2(ageState = ageState, targetWeightState = targetWeightState, onSexSelected = { isMale = it })
+                1 -> Slide2(
+                    ageState = ageState,
+                    targetWeightState = targetWeightState,
+                    onSexSelected = { isMale = it }
+                )
             }
         }
         val scrollScope = rememberCoroutineScope()
@@ -181,7 +186,11 @@ private fun Slide1(
 }
 
 @Composable
-fun Slide2(onSexSelected: (Boolean) -> Unit, ageState: AgeState = remember { AgeState() }, targetWeightState: WeightState = remember { WeightState() }) {
+fun Slide2(
+    onSexSelected: (Boolean) -> Unit,
+    ageState: AgeState = remember { AgeState() },
+    targetWeightState: WeightState = remember { WeightState() }
+) {
     Column {
         Text(
             "Extra information for the best recommendation…", style = MaterialTheme.typography.h6

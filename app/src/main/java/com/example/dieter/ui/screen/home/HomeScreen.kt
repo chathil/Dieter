@@ -75,7 +75,9 @@ import com.example.dieter.vo.DataState
 import com.google.accompanist.insets.statusBarsPadding
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 @Composable
 fun HomeScreen(
@@ -92,10 +94,14 @@ fun HomeScreen(
         )
     )
     homeViewModel.goal(temporaryId)
+    homeViewModel.todayNutrient(temporaryId)
+    homeViewModel.todayFood(temporaryId)
+
     var showTrialBanner by remember { mutableStateOf(true) }
     var showSignInBanner by remember { mutableStateOf(Firebase.auth.currentUser == null) }
     val goal by homeViewModel.goal.collectAsState()
     var showGoalBanner by remember { mutableStateOf(false) }
+    val todaysFoods by homeViewModel.todaysFood.collectAsState()
 
     when (goal) {
         is DataState.Success -> if ((goal as DataState.Success<GoalModel?>).data == null) {
@@ -107,8 +113,11 @@ fun HomeScreen(
         is DataState.Loading -> {
         }
         is DataState.Empty -> {
+            showGoalBanner = true
         }
     }
+
+    val nutrients by homeViewModel.nutrients.collectAsState()
 
     Box(contentAlignment = Alignment.BottomCenter) {
         val scrollState = rememberScrollState()
@@ -138,21 +147,25 @@ fun HomeScreen(
             Spacer(Modifier.size(12.dp))
             HomeSection(title = "Today's summary", modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(Modifier.size(22.dp))
-            homeViewModel.nutrients.subList(0, 5).forEachIndexed { idx, nutrient ->
-                NutrientBar(
-                    nutrient = NutrientModel(
-                        nutrient.name,
-                        nutrient.current,
-                        nutrient.of,
-                        nutrient.unit
-                    ),
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                if (idx == 0) {
+            if (nutrients.isNotEmpty()) {
+                nutrients.subList(0, nutrients.size).forEachIndexed { idx, nutrient ->
+                    NutrientBar(
+                        nutrient = NutrientModel(
+                            nutrient.name,
+                            nutrient.current,
+                            nutrient.of,
+                            nutrient.unit
+                        ),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    if (idx == 0) {
+                        Spacer(Modifier.size(12.dp))
+                        BurnCaloriesButton(modifier = Modifier.padding(horizontal = 16.dp))
+                    }
                     Spacer(Modifier.size(12.dp))
-                    BurnCaloriesButton(modifier = Modifier.padding(horizontal = 16.dp))
                 }
-                Spacer(Modifier.size(12.dp))
+            } else {
+                Text("Nothing for now.")
             }
 
             IconButton(onClick = { /*TODO*/ }) {
@@ -172,11 +185,11 @@ fun HomeScreen(
             }
             Spacer(Modifier.size(12.dp))
             HomeSection(title = "Food eaten today", modifier = Modifier.padding(horizontal = 16.dp))
-            homeViewModel.todaysFoods.forEach {
+            todaysFoods.forEach {
                 FoodCard(it, modifier = Modifier.padding(horizontal = 16.dp))
                 Spacer(Modifier.size(8.dp))
             }
-            Spacer(Modifier.size(72.dp))
+            Spacer(Modifier.size(216.dp))
         }
         BottomBar(
             navigateHome = reloadHome,
@@ -411,6 +424,10 @@ private fun BodyWeightBar(weightModel: BodyWeightModel, modifier: Modifier = Mod
 @Composable
 @OptIn(ExperimentalStdlibApi::class)
 private fun FoodCard(foodModel: TodaysFoodModel, modifier: Modifier = Modifier) {
+    val consumedAt = SimpleDateFormat(
+        "HH:mm",
+        Locale.UK
+    ).format(foodModel.consumedAt)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -425,7 +442,7 @@ private fun FoodCard(foodModel: TodaysFoodModel, modifier: Modifier = Modifier) 
                 .background(MaterialTheme.colors.primary)
         ) {
             Text(
-                "12.10", style = MaterialTheme.typography.caption, modifier = Modifier.padding(4.dp)
+                consumedAt, style = MaterialTheme.typography.caption, modifier = Modifier.padding(4.dp)
             )
         }
         Spacer(Modifier.size(8.dp))
@@ -558,7 +575,7 @@ fun HomeSectionPreview() {
 fun NutrientBarPreview() {
     DieterTheme {
         Surface {
-            NutrientBar(NutrientModel("Calorie", 1437, 2000, "kcal"))
+            NutrientBar(NutrientModel("Calorie", 1437f, 2000, "kcal"))
         }
     }
 }
@@ -605,6 +622,7 @@ private fun FoodCardPreview() {
             Column(modifier = Modifier.padding(16.dp)) {
                 FoodCard(
                     TodaysFoodModel(
+                        "",
                         FoodType.BREAKFAST,
                         "Egg Sandwich",
                         "fake_food.jpg",
@@ -615,6 +633,7 @@ private fun FoodCardPreview() {
                 Spacer(Modifier.size(8.dp))
                 FoodCard(
                     TodaysFoodModel(
+                        "",
                         FoodType.BREAKFAST,
                         "Egg Sandwich",
                         "fake_food.jpg",
@@ -625,6 +644,7 @@ private fun FoodCardPreview() {
                 Spacer(Modifier.size(8.dp))
                 FoodCard(
                     TodaysFoodModel(
+                        "",
                         FoodType.BREAKFAST,
                         "Egg Sandwich",
                         "fake_food.jpg",

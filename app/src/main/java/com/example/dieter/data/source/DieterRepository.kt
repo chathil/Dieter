@@ -2,12 +2,15 @@ package com.example.dieter.data.source
 
 import com.example.dieter.data.source.domain.SaveFoodModel
 import com.example.dieter.data.source.domain.SetGoalModel
+import com.example.dieter.data.source.domain.TodaysFoodModel
 import com.example.dieter.data.source.domain.asRequest
 import com.example.dieter.data.source.firebase.DieterFirebaseAuth
 import com.example.dieter.data.source.firebase.DieterRealtimeDatabase
 import com.example.dieter.data.source.firebase.response.asDomainModel
 import com.example.dieter.vo.DataState
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.Date
 import javax.inject.Inject
 
 class DieterRepository @Inject constructor(
@@ -48,6 +51,34 @@ class DieterRepository @Inject constructor(
                 is DataState.Empty -> DataState.Empty
             }
         }
+
+    override fun todayNutrient(userRepId: String) = realtimeDatabase.todayNutrient(userRepId)
+    override fun todayFood(userRepId: String): Flow<DataState<List<TodaysFoodModel>>> {
+        return realtimeDatabase.todayFood(userRepId).map {
+            when (it) {
+                is DataState.Success -> {
+                    if (it.data.isNotEmpty()) {
+                        val remap = it.data.map { data ->
+                            TodaysFoodModel(
+                                data.first,
+                                data.second.summary!!.type!!,
+                                data.second.summary!!.name!!,
+                                null,
+                                data.second.summary!!.nutrients!!["Energy"]?.toInt() ?: 0,
+                                Date(data.second.addedAt!!)
+                            )
+                        }
+                        DataState.Success(remap)
+                    } else {
+                        DataState.Loading(null)
+                    }
+                }
+                is DataState.Error -> DataState.Error(it.exception)
+                is DataState.Loading -> DataState.Loading(null)
+                is DataState.Empty -> DataState.Empty
+            }
+        }
+    }
 
     companion object {
         private val TAG = DieterRepository::class.java.simpleName

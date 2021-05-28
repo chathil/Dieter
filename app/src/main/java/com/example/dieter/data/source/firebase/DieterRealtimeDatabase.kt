@@ -110,7 +110,7 @@ class DieterRealtimeDatabase @Inject constructor(
     }
 
     fun saveFood(userRepId: String, request: SaveFoodRequest) = callbackFlow {
-        offer(DataState.Loading(null))
+        offer(DataState.Loading(true))
         rootRef.child("user_intakes").child(userRepId).push().setValue(request)
             .addOnSuccessListener {
                 if (!isClosedForSend)

@@ -6,9 +6,13 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
+import android.view.LayoutInflater
+import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -40,23 +44,26 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import com.example.dieter.DieterAppState
 import com.example.dieter.R
 import com.example.dieter.application.DieterApplication
 import com.example.dieter.data.source.domain.IngredientModel
-import com.example.dieter.data.source.domain.NutrientType
+import com.example.dieter.ui.component.CameraPreview
 import com.example.dieter.ui.component.MeasurementDropdown
 import com.example.dieter.ui.component.UpButton
 import com.example.dieter.ui.theme.DieterShapes
-import com.example.dieter.ui.theme.DieterTheme
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -86,7 +93,7 @@ fun AddIngredientsScreen(
     }
 
     Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()) {
-        val imageCapture = ImageCapture.Builder().build()
+        val imageCapture by remember { mutableStateOf(ImageCapture.Builder().build()) }
         val ingredientState by appState.ingredientsState.collectAsState()
         Box {
             Column(
@@ -98,17 +105,23 @@ fun AddIngredientsScreen(
                  * TODO Camera keep printing error logs that makes it hard to read other logs
                  * Disabling it for a while until there's a solution
                  */
-                // CameraPreview(
-                //     imageCapture = imageCapture,
-                //     modifier = Modifier
-                //         .fillMaxWidth()
-                //         .height(384.dp)
-                // )
-                Spacer(
+                CameraPreview(
+                    imageCapture = imageCapture,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(384.dp)
                 )
+                // SimpleCameraPreview(
+                // imageCapture = imageCapture,
+                // modifier = Modifier
+                //     .fillMaxWidth()
+                //     .height(384.dp)
+                // )
+                // Spacer(
+                //     modifier = Modifier
+                //         .fillMaxWidth()
+                //         .height(384.dp)
+                // )
                 Spacer(Modifier.size(12.dp))
                 Text(
                     "Take a picture to detect the\n" +
@@ -136,7 +149,11 @@ fun AddIngredientsScreen(
             }
         }
         BottomBar(
-            takePicture = { takePhoto(imageCapture) },
+            takePicture = {
+                takePhoto(imageCapture) {
+                    appState.photoUri = it
+                }
+            },
             searchIngredient = navigateToSearchIngredient,
             next = calculateNutrients,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 36.dp)
@@ -146,8 +163,8 @@ fun AddIngredientsScreen(
 
 private const val FILENAME = "yyyy-MM-dd-HH-mm-ss-SSS"
 private const val PHOTO_EXTENSION = ".jpg"
-private fun takePhoto(imageCapture: ImageCapture) {
-
+private fun takePhoto(imageCapture: ImageCapture, onTaken: (Uri) -> Unit) {
+    Log.d("takePhoto", "takePhoto: Called")
     // TODO: Remove bang operator
     val context = DieterApplication.applicationContext()!!
     val photoFile = createFile(getOutputDirectory(context), FILENAME, PHOTO_EXTENSION)
@@ -168,7 +185,7 @@ private fun takePhoto(imageCapture: ImageCapture) {
             override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                 val savedUri = Uri.fromFile(photoFile)
                 val msg = "Photo capture succeeded: $savedUri"
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                onTaken(savedUri)
                 Log.d("Take Photo", msg)
             }
         }
@@ -293,37 +310,110 @@ private fun IngredientCard(
     }
 }
 
-@Preview
-@Composable
-private fun BottomBarPreview() {
-    DieterTheme {
-        BottomBar()
-    }
-}
+// viewBlock = { context: Context ->
+//     val view =
+//         LayoutInflater.from(context)
+//             .inflate(R.layout.my_layout, null, false)
+//
+//     val textView = view.findViewById<TextView>(R.id.text)
+//     // do whatever you want...
+//     view // return the viw
+// },
+// update = { view ->
+//     // Update view
+// }
 
-@Preview
 @Composable
-private fun IngredientCardPreview() {
-    DieterTheme {
-        IngredientCard(
-            mapOf(
-                IngredientModel(
-                    ")",
-                    "Broccoli",
-                    0f,
-                    mapOf(
-                        NutrientType.ENERC_KCAL to 9f,
-                        NutrientType.FIBTG to 10f,
-                        NutrientType.CA to 2f,
-                        NutrientType.FAT to 39f,
-                        NutrientType.P to 45f
-                    ),
-                    "Meal",
-                    "Meal Label",
-                    emptyList(),
-                    null
-                ) to 1
-            ).entries.first()
+fun SimpleCameraPreview() {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    AndroidView(
+        factory = { context: Context ->
+            val view =
+                LayoutInflater.from(context)
+                    .inflate(R.layout.camera_host, null, false)
+
+            // do whatever you want...
+            view // return the viw
+        }
+    ) {
+        cameraProviderFuture.addListener(
+            {
+                val cameraProvider = cameraProviderFuture.get()
+                bindPreview(
+                    lifecycleOwner,
+                    it as PreviewView /*the inflated layout*/,
+                    cameraProvider
+                )
+            },
+            ContextCompat.getMainExecutor(context)
         )
     }
+    // AndroidView() { inflatedLayout ->
+    // You can call
+    // findViewById<>() and etc ... on inflatedLayout
+    // here PreviewView is the root of my layout so I just cast it to
+    // the PreviewView and no findViewById is required
+
+    // cameraProviderFuture.addListener({
+    //     val cameraProvider = cameraProviderFuture.get()
+    //     bindPreview(
+    //         lifecycleOwner,
+    //         inflatedLayout as PreviewView /*the inflated layout*/,
+    //         cameraProvider)
+    // }, ContextCompat.getMainExecutor(context))
+
+    // }
 }
+
+fun bindPreview(
+    lifecycleOwner: LifecycleOwner,
+    previewView: PreviewView,
+    cameraProvider: ProcessCameraProvider
+) {
+    var preview: Preview = Preview.Builder().build()
+
+    var cameraSelector: CameraSelector = CameraSelector.Builder()
+        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+        .build()
+
+    preview.setSurfaceProvider(previewView.surfaceProvider)
+
+    var camera = cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
+}
+
+// @Preview
+// @Composable
+// private fun BottomBarPreview() {
+//     DieterTheme {
+//         BottomBar()
+//     }
+// }
+//
+// @Preview
+// @Composable
+// private fun IngredientCardPreview() {
+//     DieterTheme {
+//         IngredientCard(
+//             mapOf(
+//                 IngredientModel(
+//                     ")",
+//                     "Broccoli",
+//                     0f,
+//                     mapOf(
+//                         NutrientType.ENERC_KCAL to 9f,
+//                         NutrientType.FIBTG to 10f,
+//                         NutrientType.CA to 2f,
+//                         NutrientType.FAT to 39f,
+//                         NutrientType.P to 45f
+//                     ),
+//                     "Meal",
+//                     "Meal Label",
+//                     emptyList(),
+//                     null
+//                 ) to 1
+//             ).entries.first()
+//         )
+//     }
+// }

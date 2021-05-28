@@ -1,6 +1,7 @@
 package com.example.dieter.ui.screen.calculate
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -32,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,6 +47,7 @@ import com.example.dieter.ui.component.TextFieldState
 import com.example.dieter.ui.component.UpButton
 import com.example.dieter.ui.theme.DieterTheme
 import com.example.dieter.vo.DataState
+import com.google.accompanist.glide.rememberGlidePainter
 import com.google.accompanist.insets.statusBarsPadding
 import java.util.Locale
 
@@ -62,9 +65,11 @@ fun CalculateScreen(
     var progress by remember { mutableStateOf("") }
     when (saveFoodState) {
         is DataState.Success -> save()
-        is DataState.Loading -> progress = "Loading..."
+        is DataState.Loading -> if ((saveFoodState as DataState.Loading<Boolean>).data != null) progress =
+            "Loading..."
         is DataState.Error -> progress = "Error..."
-        is DataState.Empty -> {}
+        is DataState.Empty -> {
+        }
     }
     Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()) {
         Column(
@@ -86,11 +91,22 @@ fun CalculateScreen(
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Spacer(Modifier.size(16.dp))
-                Spacer(
-                    Modifier
-                        .size(86.dp)
-                        .background(MaterialTheme.colors.primary)
-                )
+                if (appState.photoUri != null) {
+                    Image(
+                        contentScale = ContentScale.Inside,
+                        painter = rememberGlidePainter(request = appState.photoUri),
+                        modifier = Modifier
+                            .size(86.dp)
+                            .background(MaterialTheme.colors.primary),
+                        contentDescription = "pic of food"
+                    )
+                } else {
+                    Spacer(
+                        Modifier
+                            .size(86.dp)
+                            .background(MaterialTheme.colors.primary)
+                    )
+                }
                 Spacer(Modifier.size(8.dp))
                 MealName(mealNameState = mealNameState, modifier = Modifier.padding(end = 16.dp))
             }

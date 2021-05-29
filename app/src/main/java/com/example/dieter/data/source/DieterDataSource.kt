@@ -17,8 +17,8 @@ interface DieterDataSource {
     fun temporaryId(token: String): Flow<DataState<Boolean>>
     fun linkUserDevice(userId: String, temporaryId: String): Flow<DataState<Boolean>>
     fun saveFood(userRepId: String, food: SaveFoodModel): Flow<DataState<Boolean>>
-    fun todayNutrient(userRepId: String): Flow<DataState<Map<String, Float>>>
-    fun todayFood(userRepId: String): Flow<DataState<List<TodaysFoodModel>>>
+    fun todayNutrient(userRepId: String, date: String): Flow<DataState<Map<String, Float>>>
+    fun todayFood(userRepId: String, date: String): Flow<DataState<List<TodaysFoodModel>>>
     fun newBodyWeight(userRepId: String, setBodyWeightModel: SetBodyWeightModel): Flow<DataState<Boolean>>
     fun bodyWeights(userRepId: String): Flow<DataState<List<BodyWeightModel>>>
 }

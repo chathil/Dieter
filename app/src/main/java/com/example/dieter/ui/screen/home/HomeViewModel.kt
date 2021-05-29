@@ -1,8 +1,11 @@
 package com.example.dieter.ui.screen.home
 
 import android.util.Log
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.dieter.USER_REP_ID
+import com.example.dieter.application.DieterApplication
 import com.example.dieter.data.source.DieterRepository
 import com.example.dieter.data.source.EdamamRepository
 import com.example.dieter.data.source.domain.BodyWeightModel
@@ -11,12 +14,16 @@ import com.example.dieter.data.source.domain.NutrientModel
 import com.example.dieter.data.source.domain.NutrientType
 import com.example.dieter.data.source.domain.SetBodyWeightModel
 import com.example.dieter.data.source.domain.TodaysFoodModel
+import com.example.dieter.dataStore
 import com.example.dieter.vo.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,9 +31,7 @@ class HomeViewModel @Inject constructor(
     private val dieterRepository: DieterRepository,
     edamamRepository: EdamamRepository
 ) : ViewModel() {
-
-    init {
-    }
+    private val userRepKey = stringPreferencesKey(USER_REP_ID)
 
     private val _error = MutableStateFlow(false)
     val error: StateFlow<Boolean>
@@ -49,23 +54,24 @@ class HomeViewModel @Inject constructor(
 
     val bodyWeightEntries: StateFlow<List<BodyWeightModel>>
         get() = _bodyWeightEntries
-
-    // val bodyWeightEntries = listOf(
-    //     BodyWeightModel("", 56, 70, Date(1618512113000)),
-    //     BodyWeightModel("", 60, 70, Date(1618598513000)),
-    //     BodyWeightModel("", 61, 70, Date(1618684913000)),
-    //     BodyWeightModel("", 67, 70, Date(1618771313000)),
-    //     BodyWeightModel("", 70, 70, Date(1618944113000)),
-    //     BodyWeightModel("", 70, 70, Date(1619030513000)),
-    //     BodyWeightModel("", 70, 70, Date(1619116913000)),
-    //     BodyWeightModel("", 70, 70, Date(1619203313000)),
-    //     BodyWeightModel("", 69, 70, Date(1619289713000))
-    // )
-
+    init {
+        viewModelScope.launch {
+            userRepId()!!.collect { token ->
+                goal(token!!)
+                todayNutrient(token!!)
+                todayFood(token!!)
+                bodyWeights(token!!)
+            }
+        }
+    }
     fun todayNutrient(userRepId: String) {
+        val nowString = SimpleDateFormat(
+            "dd-MM-yyyy",
+            Locale.UK
+        ).format(java.util.Date(System.currentTimeMillis()))
         val mapped = NutrientType.values().map { it.nutrientName to it }.toMap()
         viewModelScope.launch {
-            dieterRepository.todayNutrient(userRepId).collect {
+            dieterRepository.todayNutrient(userRepId, nowString).collect {
                 when (it) {
                     is DataState.Success -> {
                         _nutrients.value = it.data.map { (k, v) ->
@@ -83,8 +89,12 @@ class HomeViewModel @Inject constructor(
     }
 
     fun todayFood(userRepId: String) {
+        val nowString = SimpleDateFormat(
+            "dd-MM-yyyy",
+            Locale.UK
+        ).format(java.util.Date(System.currentTimeMillis()))
         viewModelScope.launch {
-            dieterRepository.todayFood(userRepId).collect {
+            dieterRepository.todayFood(userRepId, nowString).collect {
                 when (it) {
                     is DataState.Success -> {
                         _todaysFood.value = it.data
@@ -122,6 +132,11 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    private fun userRepId() = DieterApplication.applicationContext()?.dataStore?.data
+        ?.map { preferences ->
+            preferences[userRepKey]
+        }
 
     companion object {
         private val TAG = HomeViewModel::class.java.simpleName

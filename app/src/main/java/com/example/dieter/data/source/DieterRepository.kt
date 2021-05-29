@@ -53,8 +53,8 @@ class DieterRepository @Inject constructor(
             }
         }
 
-    override fun todayNutrient(userRepId: String) = realtimeDatabase.todayNutrient(userRepId)
-    override fun todayFood(userRepId: String) = realtimeDatabase.todayFood(userRepId).map {
+    override fun todayNutrient(userRepId: String, date: String) = realtimeDatabase.todayNutrient(userRepId, date)
+    override fun todayFood(userRepId: String, date: String) = realtimeDatabase.todayFood(userRepId, date).map {
         when (it) {
             is DataState.Success -> {
                 if (it.data.isNotEmpty()) {

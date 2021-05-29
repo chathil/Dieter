@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
-import android.view.LayoutInflater
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -49,10 +48,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
@@ -323,49 +320,33 @@ private fun IngredientCard(
 //     // Update view
 // }
 
-@Composable
-fun SimpleCameraPreview() {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val context = LocalContext.current
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-    AndroidView(
-        factory = { context: Context ->
-            val view =
-                LayoutInflater.from(context)
-                    .inflate(R.layout.camera_host, null, false)
-
-            // do whatever you want...
-            view // return the viw
-        }
-    ) {
-        cameraProviderFuture.addListener(
-            {
-                val cameraProvider = cameraProviderFuture.get()
-                bindPreview(
-                    lifecycleOwner,
-                    it as PreviewView /*the inflated layout*/,
-                    cameraProvider
-                )
-            },
-            ContextCompat.getMainExecutor(context)
-        )
-    }
-    // AndroidView() { inflatedLayout ->
-    // You can call
-    // findViewById<>() and etc ... on inflatedLayout
-    // here PreviewView is the root of my layout so I just cast it to
-    // the PreviewView and no findViewById is required
-
-    // cameraProviderFuture.addListener({
-    //     val cameraProvider = cameraProviderFuture.get()
-    //     bindPreview(
-    //         lifecycleOwner,
-    //         inflatedLayout as PreviewView /*the inflated layout*/,
-    //         cameraProvider)
-    // }, ContextCompat.getMainExecutor(context))
-
-    // }
-}
+// @Composable
+// private fun SimpleCameraPreview() {
+//     val lifecycleOwner = LocalLifecycleOwner.current
+//     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+//     AndroidView(
+//         factory = { context: Context ->
+//             val view =
+//                 LayoutInflater.from(context)
+//                     .inflate(R.layout.camera_host, null, false)
+//
+//             // do whatever you want...
+//             view // return the viw
+//         }
+//     ) {
+//         cameraProviderFuture.addListener(
+//             {
+//                 val cameraProvider = cameraProviderFuture.get()
+//                 bindPreview(
+//                     lifecycleOwner,
+//                     it as PreviewView /*the inflated layout*/,
+//                     cameraProvider
+//                 )
+//             },
+//             ContextCompat.getMainExecutor(context)
+//         )
+//     }
+// }
 
 fun bindPreview(
     lifecycleOwner: LifecycleOwner,

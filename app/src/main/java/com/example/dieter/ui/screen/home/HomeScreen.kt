@@ -1,8 +1,6 @@
 package com.example.dieter.ui.screen.home
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -58,14 +55,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.dieter.R
 import com.example.dieter.data.source.domain.BodyWeightModel
 import com.example.dieter.data.source.domain.FoodType
 import com.example.dieter.data.source.domain.GoalModel
@@ -74,8 +68,9 @@ import com.example.dieter.data.source.domain.SetBodyWeightModel
 import com.example.dieter.data.source.domain.TodaysFoodModel
 import com.example.dieter.ui.component.AppNameHeader
 import com.example.dieter.ui.component.DieterDefaultButton
-import com.example.dieter.ui.component.DieterProgressBar
 import com.example.dieter.ui.component.DieterVerticalBarChart
+import com.example.dieter.ui.component.FoodCard
+import com.example.dieter.ui.component.NutrientBar
 import com.example.dieter.ui.component.TextFieldError
 import com.example.dieter.ui.theme.AlphaNearTransparent
 import com.example.dieter.ui.theme.AlphaReallyTransparent
@@ -95,6 +90,7 @@ import java.util.Locale
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
     navigateToCalculateNutrients: () -> Unit = {},
+    history: () -> Unit = {},
     reloadHome: () -> Unit = {},
     burnCalories: () -> Unit = {},
     setGoal: () -> Unit = {},
@@ -105,10 +101,6 @@ fun HomeScreen(
             AlphaNearTransparent
         )
     )
-    homeViewModel.goal(temporaryId)
-    homeViewModel.todayNutrient(temporaryId)
-    homeViewModel.todayFood(temporaryId)
-    homeViewModel.bodyWeights(temporaryId)
 
     var showTrialBanner by remember { mutableStateOf(true) }
     var showSignInBanner by remember { mutableStateOf(Firebase.auth.currentUser == null) }
@@ -119,6 +111,7 @@ fun HomeScreen(
     val bodyWeightState = remember { BodyWeightState() }
     var targetWeight by remember { mutableStateOf(0) }
     val bodyWeightEntries by homeViewModel.bodyWeightEntries.collectAsState()
+    val nutrients by homeViewModel.nutrients.collectAsState()
 
     when (goal) {
         is DataState.Success -> if ((goal as DataState.Success<GoalModel?>).data == null) {
@@ -137,8 +130,6 @@ fun HomeScreen(
         }
     }
 
-    val nutrients by homeViewModel.nutrients.collectAsState()
-
     Box(contentAlignment = Alignment.BottomCenter) {
         val scrollState = rememberScrollState()
         Column(
@@ -150,7 +141,7 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.size(16.dp))
-            HomeAppBar(modifier = Modifier.padding(horizontal = 16.dp))
+            HomeAppBar(modifier = Modifier.padding(horizontal = 16.dp), historyTapped = history)
             Spacer(Modifier.size(12.dp))
             if (showSignInBanner)
                 SignInBanner(onClose = { showSignInBanner = false })
@@ -282,7 +273,11 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeAppBar(modifier: Modifier = Modifier) {
+private fun HomeAppBar(
+    modifier: Modifier = Modifier,
+    historyTapped: () -> Unit = {},
+    notificationTapped: () -> Unit = {}
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -290,9 +285,13 @@ private fun HomeAppBar(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(imageVector = Icons.Rounded.Timeline, contentDescription = "history")
+        IconButton(onClick = historyTapped) {
+            Icon(imageVector = Icons.Rounded.Timeline, contentDescription = "history")
+        }
         AppNameHeader()
-        Icon(imageVector = Icons.Rounded.Notifications, contentDescription = "notifications")
+        IconButton(onClick = notificationTapped) {
+            Icon(imageVector = Icons.Rounded.Notifications, contentDescription = "notifications")
+        }
     }
 }
 
@@ -414,27 +413,6 @@ private fun HomeSection(modifier: Modifier = Modifier, title: String) {
 }
 
 @Composable
-private fun NutrientBar(nutrient: NutrientModel, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(nutrient.name)
-            Text("${nutrient.current}/${nutrient.of} ${nutrient.unit}")
-        }
-        DieterProgressBar(progress = (nutrient.current / nutrient.of.toFloat()))
-    }
-}
-
-@Composable
 private fun BurnCaloriesButton(modifier: Modifier = Modifier) {
     Button(
         onClick = { /*TODO*/ },
@@ -545,58 +523,6 @@ private fun BodyWeight(
     )
     bodyWeightState.getError()?.let {
         TextFieldError(textError = it)
-    }
-}
-
-@SuppressLint("DefaultLocale")
-@Composable
-@OptIn(ExperimentalStdlibApi::class)
-private fun FoodCard(foodModel: TodaysFoodModel, modifier: Modifier = Modifier) {
-    val consumedAt = SimpleDateFormat(
-        "HH:mm",
-        Locale.UK
-    ).format(foodModel.consumedAt)
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .fillMaxWidth()
-    ) {
-
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .defaultMinSize(38.dp, 38.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colors.primary)
-        ) {
-            Text(
-                consumedAt,
-                style = MaterialTheme.typography.caption,
-                modifier = Modifier.padding(4.dp)
-            )
-        }
-        Spacer(Modifier.size(8.dp))
-        Image(
-            painter = painterResource(id = R.drawable.fake_food),
-            contentScale = ContentScale.Crop,
-            contentDescription = "food picture",
-            modifier = Modifier
-                .size(64.dp)
-                .background(Color.Transparent, DieterShapes.small)
-                .clip(DieterShapes.small)
-        )
-        Spacer(Modifier.size(8.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                foodModel.type.toString().lowercase().capitalize(),
-                style = MaterialTheme.typography.subtitle2
-            )
-            Text("${foodModel.cal} kcal", style = MaterialTheme.typography.caption)
-        }
     }
 }
 

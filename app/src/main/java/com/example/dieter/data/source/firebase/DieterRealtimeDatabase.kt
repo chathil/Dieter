@@ -24,8 +24,6 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
-import java.text.SimpleDateFormat
-import java.util.Locale
 import javax.inject.Inject
 
 @Module
@@ -140,11 +138,7 @@ class DieterRealtimeDatabase @Inject constructor(
         }
     }
 
-    fun todayNutrient(userRepId: String) = callbackFlow<DataState<Map<String, Float>>> {
-        val nowString = SimpleDateFormat(
-            "dd-MM-yyyy",
-            Locale.UK
-        ).format(java.util.Date(System.currentTimeMillis()))
+    fun todayNutrient(userRepId: String, date: String) = callbackFlow<DataState<Map<String, Float>>> {
 
         offer(DataState.Loading(null))
         val listener = object : ValueEventListener {
@@ -163,7 +157,7 @@ class DieterRealtimeDatabase @Inject constructor(
             }
         }
 
-        rootRef.child("user_daily").child(userRepId).child("nutrients").child(nowString)
+        rootRef.child("user_daily").child(userRepId).child("nutrients").child(date)
             .addValueEventListener(listener)
 
         awaitClose {
@@ -171,7 +165,7 @@ class DieterRealtimeDatabase @Inject constructor(
         }
     }
 
-    fun todayFood(userRepId: String) = callbackFlow<DataState<List<Pair<String, FoodResponse>>>> {
+    fun todayFood(userRepId: String, date: String) = callbackFlow<DataState<List<Pair<String, FoodResponse>>>> {
         offer(DataState.Loading(null))
 
         val listener = object : ValueEventListener {
@@ -196,11 +190,7 @@ class DieterRealtimeDatabase @Inject constructor(
             }
         }
 
-        val nowString = SimpleDateFormat(
-            "dd-MM-yyyy",
-            Locale.UK
-        ).format(java.util.Date(System.currentTimeMillis()))
-        rootRef.child("user_intakes").child(userRepId).orderByChild("date").equalTo(nowString)
+        rootRef.child("user_intakes").child(userRepId).orderByChild("date").equalTo(date)
             .addValueEventListener(listener)
         awaitClose {
             Log.e(TAG, "todayFood: CLOSE")

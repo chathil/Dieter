@@ -18,6 +18,8 @@ import com.example.dieter.ui.screen.calculate.CalculateScreen
 import com.example.dieter.ui.screen.calculate.CalculateViewModel
 import com.example.dieter.ui.screen.goal.GoalScreen
 import com.example.dieter.ui.screen.goal.GoalViewModel
+import com.example.dieter.ui.screen.history.HistoryScreen
+import com.example.dieter.ui.screen.history.HistoryViewModel
 import com.example.dieter.ui.screen.home.HomeScreen
 import com.example.dieter.ui.screen.home.HomeViewModel
 import com.example.dieter.ui.screen.search.ingredient.SearchIngredientScreen
@@ -37,6 +39,7 @@ object MainDestinations {
     const val SEARCH_INGREDIENT_ROUTE = "search_ingredient"
     const val CALCULATE_NUTRIENTS_ROUTE = "calculate_nutrients"
     const val SET_GOAL_ROUTE = "set_goal"
+    const val HISTORY_ROUTE = "history"
 //    const val COURSE_DETAIL_ID_KEY = "courseId" /* For reference */
 }
 
@@ -85,6 +88,7 @@ fun NavGraph(
             HomeScreen(
                 homeViewModel = homeViewModel,
                 temporaryId = userRepId,
+                history = actions.history,
                 navigateToCalculateNutrients = actions.addIngredients,
                 setGoal = actions.setGoal
             )
@@ -148,6 +152,15 @@ fun NavGraph(
             )
         }
 
+        composable(MainDestinations.HISTORY_ROUTE) {
+            val viewModel: HistoryViewModel = viewModel(
+                factory = HiltViewModelFactory(
+                    LocalContext.current, it
+                )
+            )
+            HistoryScreen(viewModel = viewModel, userRepId = userRepId, goUp = actions.toHome)
+        }
+
         // Reference for navigation with parameters
 
 //        navigation(
@@ -202,6 +215,10 @@ class MainActions(navController: NavHostController) {
 
     val setGoal: () -> Unit = {
         navController.navigate(MainDestinations.SET_GOAL_ROUTE)
+    }
+
+    val history: () -> Unit = {
+        navController.navigate(MainDestinations.HISTORY_ROUTE)
     }
 
     // For reference

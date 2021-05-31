@@ -26,6 +26,8 @@ import com.example.dieter.ui.screen.search.ingredient.SearchIngredientScreen
 import com.example.dieter.ui.screen.search.ingredient.SearchIngredientViewModel
 import com.example.dieter.ui.screen.welcome.WelcomeScreen
 import com.example.dieter.ui.screen.welcome.WelcomeViewModel
+import com.example.dieter.ui.screen.workout.WorkoutScreen
+import com.example.dieter.ui.screen.workout.WorkoutViewModel
 import kotlinx.coroutines.InternalCoroutinesApi
 
 /**
@@ -40,6 +42,7 @@ object MainDestinations {
     const val CALCULATE_NUTRIENTS_ROUTE = "calculate_nutrients"
     const val SET_GOAL_ROUTE = "set_goal"
     const val HISTORY_ROUTE = "history"
+    const val WORKOUT_ROUTE = "workout"
 //    const val COURSE_DETAIL_ID_KEY = "courseId" /* For reference */
 }
 
@@ -48,6 +51,7 @@ object MainDestinations {
 fun NavGraph(
     modifier: Modifier = Modifier,
     userRepId: String,
+    appState: DieterAppState,
     finishActivity: () -> Unit = {},
     welcomeShown: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
@@ -61,7 +65,7 @@ fun NavGraph(
         navController = navController,
         startDestination = if (showWelcomeInitially) MainDestinations.WELCOME_ROUTE else startDestination
     ) {
-        val appState = DieterAppState()
+
         composable(MainDestinations.WELCOME_ROUTE) {
             val welcomeViewModel: WelcomeViewModel =
                 viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
@@ -89,6 +93,7 @@ fun NavGraph(
                 homeViewModel = homeViewModel,
                 temporaryId = userRepId,
                 history = actions.history,
+                burnCalories = actions.workout,
                 navigateToCalculateNutrients = actions.addIngredients,
                 setGoal = actions.setGoal
             )
@@ -161,6 +166,12 @@ fun NavGraph(
             HistoryScreen(viewModel = viewModel, userRepId = userRepId, goUp = actions.toHome)
         }
 
+        composable(MainDestinations.WORKOUT_ROUTE) {
+            val viewModel: WorkoutViewModel =
+                viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
+            WorkoutScreen(viewModel = viewModel, appState = appState, goUp = actions.upPress)
+        }
+
         // Reference for navigation with parameters
 
 //        navigation(
@@ -219,6 +230,10 @@ class MainActions(navController: NavHostController) {
 
     val history: () -> Unit = {
         navController.navigate(MainDestinations.HISTORY_ROUTE)
+    }
+
+    val workout: () -> Unit = {
+        navController.navigate(MainDestinations.WORKOUT_ROUTE)
     }
 
     // For reference

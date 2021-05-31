@@ -2,6 +2,7 @@ package com.example.dieter
 
 import android.net.Uri
 import android.util.Log
+import com.example.dieter.data.source.domain.ActiveCounterModel
 import com.example.dieter.data.source.domain.IngredientModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,12 +11,29 @@ import kotlinx.coroutines.flow.StateFlow
  * Shared state across screens
  */
 class DieterAppState {
+
+    private val _activeCounterState = MutableStateFlow<ActiveCounterModel?>(null)
+    val activeCounterState: StateFlow<ActiveCounterModel?>
+        get() = _activeCounterState
+
     private val _ingredientsState = MutableStateFlow(mapOf<IngredientModel, Int>())
 
     val ingredientsState: StateFlow<Map<IngredientModel, Int>>
         get() = _ingredientsState
 
+    private val _workoutDone = MutableStateFlow(false)
+    val workoutDone: StateFlow<Boolean>
+        get() = _workoutDone
+
+    fun workoutDone() {
+        _workoutDone.value = true
+    }
+
     var photoUri: Uri? = null
+
+    fun updateCounter(counter: ActiveCounterModel) {
+        _activeCounterState.value = counter
+    }
 
     fun addIngredient(ingredient: IngredientModel) {
         if (_ingredientsState.value.containsKey(ingredient)) {

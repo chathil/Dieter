@@ -61,6 +61,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dieter.data.source.domain.BodyWeightModel
+import com.example.dieter.data.source.domain.BurnCalorieModel
 import com.example.dieter.data.source.domain.FoodType
 import com.example.dieter.data.source.domain.GoalModel
 import com.example.dieter.data.source.domain.NutrientModel
@@ -112,6 +113,7 @@ fun HomeScreen(
     var targetWeight by remember { mutableStateOf(0) }
     val bodyWeightEntries by homeViewModel.bodyWeightEntries.collectAsState()
     val nutrients by homeViewModel.nutrients.collectAsState()
+    val calories by homeViewModel.calories.collectAsState()
 
     when (goal) {
         is DataState.Success -> if ((goal as DataState.Success<GoalModel?>).data == null) {
@@ -176,7 +178,12 @@ fun HomeScreen(
                     )
                     if (idx == 0) {
                         Spacer(Modifier.size(12.dp))
-                        BurnCaloriesButton(modifier = Modifier.padding(horizontal = 16.dp))
+                        BurnCaloriesButton(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp),
+                            burnCalorieModel = calories,
+                            onClick = burnCalories
+                        )
                     }
                     Spacer(Modifier.size(12.dp))
                 }
@@ -413,9 +420,25 @@ private fun HomeSection(modifier: Modifier = Modifier, title: String) {
 }
 
 @Composable
-private fun BurnCaloriesButton(modifier: Modifier = Modifier) {
+private fun BurnCaloriesButton(
+    modifier: Modifier = Modifier,
+    burnCalorieModel: DataState<BurnCalorieModel>,
+    onClick: () -> Unit = {}
+) {
+    var formattedValue by remember { mutableStateOf("") }
+    var burnToBurn = Pair(1, 1)
+    when (burnCalorieModel) {
+        is DataState.Success -> {
+            formattedValue =
+                "${burnCalorieModel.data.burned}/ ${burnCalorieModel.data.toBurn} kcal"
+            burnToBurn = Pair(burnCalorieModel.data.burned, burnCalorieModel.data.toBurn)
+        }
+        is DataState.Loading -> formattedValue = "Loading"
+        is DataState.Error -> formattedValue = "Somethings wrong"
+        is DataState.Empty -> formattedValue = "Nothing for now"
+    }
     Button(
-        onClick = { /*TODO*/ },
+        onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
             .height(52.dp),
@@ -431,7 +454,7 @@ private fun BurnCaloriesButton(modifier: Modifier = Modifier) {
         ) {
             Spacer(
                 modifier = Modifier
-                    .fillMaxWidth(192 / 256f)
+                    .fillMaxWidth(burnToBurn.first / burnToBurn.second.toFloat())
                     .fillMaxHeight()
                     .background(
                         GreenPrimary,
@@ -452,7 +475,7 @@ private fun BurnCaloriesButton(modifier: Modifier = Modifier) {
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("192/ 256 kcal")
+                    Text(formattedValue)
                     Spacer(modifier.size(16.dp))
                     Icon(
                         imageVector = Icons.Filled.ChevronRight,
@@ -641,7 +664,7 @@ fun NutrientBarPreview() {
 fun BurnCaloriesButtonPreview() {
     DieterTheme {
         Surface {
-            BurnCaloriesButton()
+            BurnCaloriesButton(burnCalorieModel = DataState.Empty)
         }
     }
 }

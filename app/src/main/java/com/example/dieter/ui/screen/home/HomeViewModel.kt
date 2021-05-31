@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.dieter.USER_REP_ID
 import com.example.dieter.application.DieterApplication
 import com.example.dieter.data.source.DieterRepository
-import com.example.dieter.data.source.EdamamRepository
 import com.example.dieter.data.source.domain.BodyWeightModel
+import com.example.dieter.data.source.domain.BurnCalorieModel
 import com.example.dieter.data.source.domain.GoalModel
 import com.example.dieter.data.source.domain.NutrientModel
 import com.example.dieter.data.source.domain.NutrientType
@@ -29,7 +29,6 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val dieterRepository: DieterRepository,
-    edamamRepository: EdamamRepository
 ) : ViewModel() {
     private val userRepKey = stringPreferencesKey(USER_REP_ID)
 
@@ -54,17 +53,24 @@ class HomeViewModel @Inject constructor(
 
     val bodyWeightEntries: StateFlow<List<BodyWeightModel>>
         get() = _bodyWeightEntries
+
+    private val _calories = MutableStateFlow<DataState<BurnCalorieModel>>(DataState.Empty)
+    val calories: StateFlow<DataState<BurnCalorieModel>>
+        get() = _calories
+
     init {
         viewModelScope.launch {
             userRepId()!!.collect { token ->
                 goal(token!!)
-                todayNutrient(token!!)
-                todayFood(token!!)
-                bodyWeights(token!!)
+                todayNutrient(token)
+                todayFood(token)
+                bodyWeights(token)
+                calories(token)
             }
         }
     }
-    fun todayNutrient(userRepId: String) {
+
+    private fun todayNutrient(userRepId: String) {
         val nowString = SimpleDateFormat(
             "dd-MM-yyyy",
             Locale.UK
@@ -88,7 +94,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun todayFood(userRepId: String) {
+    private fun todayFood(userRepId: String) {
         val nowString = SimpleDateFormat(
             "dd-MM-yyyy",
             Locale.UK
@@ -123,12 +129,25 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun bodyWeights(userRepId: String) {
+    private fun bodyWeights(userRepId: String) {
         viewModelScope.launch {
             dieterRepository.bodyWeights(userRepId).collect {
                 when (it) {
                     is DataState.Success -> _bodyWeightEntries.value = it.data
                 }
+            }
+        }
+    }
+
+    private fun calories(userRepId: String) {
+        val nowString = SimpleDateFormat(
+            "dd-MM-yyyy",
+            Locale.UK
+        ).format(java.util.Date(System.currentTimeMillis()))
+        viewModelScope.launch {
+            dieterRepository.caloriesBurned(userRepId, nowString).collect {
+                _calories.value = it
+                Log.d(TAG, "calories: $it")
             }
         }
     }

@@ -16,6 +16,7 @@ import com.example.dieter.data.source.domain.SetBodyWeightModel
 import com.example.dieter.data.source.domain.TodaysFoodModel
 import com.example.dieter.dataStore
 import com.example.dieter.vo.DataState
+import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +31,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val dieterRepository: DieterRepository,
 ) : ViewModel() {
+
     private val userRepKey = stringPreferencesKey(USER_REP_ID)
 
     private val _error = MutableStateFlow(false)
@@ -58,6 +60,14 @@ class HomeViewModel @Inject constructor(
     val calories: StateFlow<DataState<BurnCalorieModel>>
         get() = _calories
 
+    private val _loginState = MutableStateFlow<DataState<FirebaseUser>>(DataState.Empty)
+    val loginState: StateFlow<DataState<FirebaseUser>>
+        get() = _loginState
+
+    private val _linkDeviceState = MutableStateFlow<DataState<Boolean>>(DataState.Empty)
+    val linkDeviceState: StateFlow<DataState<Boolean>>
+        get() = _linkDeviceState
+
     init {
         viewModelScope.launch {
             userRepId()!!.collect { token ->
@@ -68,6 +78,22 @@ class HomeViewModel @Inject constructor(
                 calories(token)
             }
         }
+    }
+
+    fun authWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            dieterRepository.authWithGoogle(idToken).collect {
+                _loginState.value = it
+            }
+        }
+    }
+
+    fun linkUserDevice(userId: String, temporaryId: String) {
+       viewModelScope.launch {
+           dieterRepository.linkUserDevice(userId, temporaryId).collect {
+               _linkDeviceState.value = it
+           }
+       }
     }
 
     private fun todayNutrient(userRepId: String) {

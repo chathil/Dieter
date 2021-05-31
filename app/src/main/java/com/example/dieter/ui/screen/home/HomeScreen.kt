@@ -194,15 +194,19 @@ fun HomeAccountGroup(
                     }
                 )
             } else if (toShow == MainDestinations.ACCOUNT_ROUTE) {
-                AccountScreen(viewModel = accountViewModel, onNewGoal = {
-                    snackbarCoroutineScope.launch {
-                        scaffoldState.snackbarHostState.showSnackbar("Not yet implemented")
+                AccountScreen(
+                    viewModel = accountViewModel,
+                    onNewGoal = {
+                        snackbarCoroutineScope.launch {
+                            scaffoldState.snackbarHostState.showSnackbar("Not yet implemented")
+                        }
+                    },
+                    backToWelcome = {
+                        snackbarCoroutineScope.launch {
+                            scaffoldState.snackbarHostState.showSnackbar("Not yet implemented")
+                        }
                     }
-                }, backToWelcome = {
-                    snackbarCoroutineScope.launch {
-                        scaffoldState.snackbarHostState.showSnackbar("Not yet implemented")
-                    }
-                })
+                )
             }
             BottomBar(
                 navigateHome = { toShow = MainDestinations.HOME_ROUTE },
@@ -299,9 +303,12 @@ fun HomeScreen(
         HomeAppBar(modifier = Modifier.padding(horizontal = 16.dp), historyTapped = history)
         Spacer(Modifier.size(12.dp))
         if (showSignInBanner)
-            SignInBanner(onClose = { showSignInBanner = false }, login = { token ->
-                homeViewModel.authWithGoogle(token)
-            })
+            SignInBanner(
+                onClose = { showSignInBanner = false },
+                login = { token ->
+                    homeViewModel.authWithGoogle(token)
+                }
+            )
         if (showTrialBanner) {
             TrialBanner(onClose = { showTrialBanner = false })
         }

@@ -139,6 +139,7 @@ class HomeViewModel @Inject constructor(
     fun goal(userRepId: String) {
         viewModelScope.launch {
             dieterRepository.goal(userRepId).collect {
+                Log.d(TAG, "goal: $it")
                 _goal.value = it
             }
         }

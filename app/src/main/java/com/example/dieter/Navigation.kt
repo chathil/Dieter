@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigate
 import androidx.navigation.compose.rememberNavController
+import com.example.dieter.ui.screen.account.AccountViewModel
 import com.example.dieter.ui.screen.add.ingredients.AddIngredientsScreen
 import com.example.dieter.ui.screen.add.ingredients.AddIngredientsViewModel
 import com.example.dieter.ui.screen.calculate.CalculateScreen
@@ -20,7 +21,7 @@ import com.example.dieter.ui.screen.goal.GoalScreen
 import com.example.dieter.ui.screen.goal.GoalViewModel
 import com.example.dieter.ui.screen.history.HistoryScreen
 import com.example.dieter.ui.screen.history.HistoryViewModel
-import com.example.dieter.ui.screen.home.HomeScreen
+import com.example.dieter.ui.screen.home.HomeAccountGroup
 import com.example.dieter.ui.screen.home.HomeViewModel
 import com.example.dieter.ui.screen.search.ingredient.SearchIngredientScreen
 import com.example.dieter.ui.screen.search.ingredient.SearchIngredientViewModel
@@ -89,8 +90,11 @@ fun NavGraph(
             }
             val homeViewModel: HomeViewModel =
                 viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
-            HomeScreen(
+            val accountViewModel: AccountViewModel =
+                viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
+            HomeAccountGroup(
                 homeViewModel = homeViewModel,
+                accountViewModel = accountViewModel,
                 temporaryId = userRepId,
                 history = actions.history,
                 burnCalories = actions.workout,

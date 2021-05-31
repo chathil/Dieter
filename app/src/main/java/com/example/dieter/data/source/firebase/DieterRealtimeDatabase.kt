@@ -49,7 +49,7 @@ class DieterRealtimeDatabase @Inject constructor(
 ) {
     fun setGoal(userRepId: String, goal: SetGoalRequest) = callbackFlow {
         offer(DataState.Loading(null))
-        rootRef.child("user_goals").child(userRepId).push().setValue(goal).addOnSuccessListener {
+        rootRef.child("user_goals").child(userRepId).setValue(goal).addOnSuccessListener {
             if (!isClosedForSend)
                 offer(DataState.Success(true))
             close()
@@ -99,15 +99,15 @@ class DieterRealtimeDatabase @Inject constructor(
 
     fun goal(userRepId: String) = callbackFlow {
         offer(DataState.Loading(null))
-        rootRef.child("user_goals").child(userRepId).orderByChild("addedAt").limitToFirst(1).get()
+        rootRef.child("user_goals").child(userRepId)
+            // orderByChild("addedAt").limitToFirst(1)
+            .get()
             .addOnSuccessListener {
                 if (!isClosedForSend) {
                     val rawres = it.getValue<GoalResponse>()
+                    Log.d(TAG, "goal: $rawres")
                     if (rawres != null) {
-                        rawres.let { res ->
-                            Log.d(TAG, "goalInn: $res")
-                            offer(DataState.Success(res))
-                        }
+                        offer(DataState.Success(rawres))
                     } else {
                         offer(DataState.Empty)
                     }

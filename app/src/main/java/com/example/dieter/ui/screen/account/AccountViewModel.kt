@@ -1,6 +1,5 @@
 package com.example.dieter.ui.screen.account
 
-import android.util.Log
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -89,11 +89,11 @@ class HomeViewModel @Inject constructor(
     }
 
     fun linkUserDevice(userId: String, temporaryId: String) {
-       viewModelScope.launch {
-           dieterRepository.linkUserDevice(userId, temporaryId).collect {
-               _linkDeviceState.value = it
-           }
-       }
+        viewModelScope.launch {
+            dieterRepository.linkUserDevice(userId, temporaryId).collect {
+                _linkDeviceState.value = it
+            }
+        }
     }
 
     private fun todayNutrient(userRepId: String) {

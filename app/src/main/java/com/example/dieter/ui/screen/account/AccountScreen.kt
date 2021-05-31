@@ -61,12 +61,10 @@ fun AccountScreen(
             goalModel = (goal as DataState.Success<GoalModel?>).data
         // it's impossible not to have target weight
         is DataState.Error -> {
-
         }
         is DataState.Loading -> {
         }
         is DataState.Empty -> {
-
         }
     }
     Scaffold {
@@ -75,7 +73,8 @@ fun AccountScreen(
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
                 .fillMaxSize()
-                .padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(
                 Modifier
@@ -84,10 +83,12 @@ fun AccountScreen(
             )
             AppNameHeader()
             Spacer(Modifier.size(24.dp))
-            AccountInfo(onLogout = {
-                backToWelcome()
-                viewModel.signOut()
-            })
+            AccountInfo(
+                onLogout = {
+                    backToWelcome()
+                    viewModel.signOut()
+                }
+            )
             Spacer(Modifier.size(24.dp))
             if (goalModel != null) {
                 GoalInfo(goal = goalModel!!, onNewGoal = onNewGoal)

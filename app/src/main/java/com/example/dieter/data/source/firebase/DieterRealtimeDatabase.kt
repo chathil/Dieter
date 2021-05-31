@@ -4,8 +4,10 @@ import android.util.Log
 import com.example.dieter.BuildConfig
 import com.example.dieter.data.source.firebase.request.BodyWeightRequest
 import com.example.dieter.data.source.firebase.request.SaveFoodRequest
+import com.example.dieter.data.source.firebase.request.SaveWorkoutRequest
 import com.example.dieter.data.source.firebase.request.SetGoalRequest
 import com.example.dieter.data.source.firebase.response.BodyWeightResponse
+import com.example.dieter.data.source.firebase.response.BurnCalorieResponse
 import com.example.dieter.data.source.firebase.response.FoodResponse
 import com.example.dieter.data.source.firebase.response.GoalResponse
 import com.example.dieter.utils.EmulatorHost
@@ -138,64 +140,66 @@ class DieterRealtimeDatabase @Inject constructor(
         }
     }
 
-    fun todayNutrient(userRepId: String, date: String) = callbackFlow<DataState<Map<String, Float>>> {
+    fun todayNutrient(userRepId: String, date: String) =
+        callbackFlow<DataState<Map<String, Float>>> {
 
-        offer(DataState.Loading(null))
-        val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (!isClosedForSend) {
-                    val res = snapshot.getValue<Map<String, Float>>() ?: emptyMap()
-                    offer(DataState.Success(res))
-                }
-                close()
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                if (!isClosedForSend)
-                    offer(DataState.Error(error.message))
-                close(error.toException().cause)
-            }
-        }
-
-        rootRef.child("user_daily").child(userRepId).child("nutrients").child(date)
-            .addValueEventListener(listener)
-
-        awaitClose {
-            Log.e(TAG, "todayNutrient: CLOSE")
-        }
-    }
-
-    fun todayFood(userRepId: String, date: String) = callbackFlow<DataState<List<Pair<String, FoodResponse>>>> {
-        offer(DataState.Loading(null))
-
-        val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (!isClosedForSend) {
-                    // TODO: find a way to remove bang operator
-                    if (snapshot.hasChildren()) {
-                        val result =
-                            snapshot.children.map { child -> child.key!! to child.getValue<FoodResponse>()!! }
-                        offer(DataState.Success(result))
-                    } else {
-                        offer(DataState.Empty)
+            offer(DataState.Loading(null))
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (!isClosedForSend) {
+                        val res = snapshot.getValue<Map<String, Float>>() ?: emptyMap()
+                        offer(DataState.Success(res))
                     }
+                    close()
                 }
-                close()
+
+                override fun onCancelled(error: DatabaseError) {
+                    if (!isClosedForSend)
+                        offer(DataState.Error(error.message))
+                    close(error.toException().cause)
+                }
             }
 
-            override fun onCancelled(error: DatabaseError) {
-                if (!isClosedForSend)
-                    offer(DataState.Error(error.message))
-                close(error.toException().cause)
+            rootRef.child("user_daily").child(userRepId).child("nutrients").child(date)
+                .addValueEventListener(listener)
+
+            awaitClose {
+                Log.e(TAG, "todayNutrient: CLOSE")
             }
         }
 
-        rootRef.child("user_intakes").child(userRepId).orderByChild("date").equalTo(date)
-            .addValueEventListener(listener)
-        awaitClose {
-            Log.e(TAG, "todayFood: CLOSE")
+    fun todayFood(userRepId: String, date: String) =
+        callbackFlow<DataState<List<Pair<String, FoodResponse>>>> {
+            offer(DataState.Loading(null))
+
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (!isClosedForSend) {
+                        // TODO: find a way to remove bang operator
+                        if (snapshot.hasChildren()) {
+                            val result =
+                                snapshot.children.map { child -> child.key!! to child.getValue<FoodResponse>()!! }
+                            offer(DataState.Success(result))
+                        } else {
+                            offer(DataState.Empty)
+                        }
+                    }
+                    close()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    if (!isClosedForSend)
+                        offer(DataState.Error(error.message))
+                    close(error.toException().cause)
+                }
+            }
+
+            rootRef.child("user_intakes").child(userRepId).orderByChild("date").equalTo(date)
+                .addValueEventListener(listener)
+            awaitClose {
+                Log.e(TAG, "todayFood: CLOSE")
+            }
         }
-    }
 
     fun newBodyWeight(userRepId: String, request: BodyWeightRequest) = callbackFlow {
         offer(DataState.Loading(true))
@@ -250,6 +254,51 @@ class DieterRealtimeDatabase @Inject constructor(
 
     fun deleteWeight(userRepId: String, weighId: String) {
     }
+
+    fun saveWorkout(userRepId: String, workout: SaveWorkoutRequest) = callbackFlow {
+        offer(DataState.Loading(true))
+        rootRef.child("user_workouts").child(userRepId).push().setValue(workout)
+            .addOnSuccessListener {
+                if (!isClosedForSend)
+                    offer(DataState.Success(true))
+                close()
+            }.addOnFailureListener {
+                if (!isClosedForSend)
+                    offer(DataState.Error(it.message!!))
+                close(it)
+            }
+        awaitClose {
+            Log.e(TAG, "saveWorkout: CLOSE")
+        }
+    }
+
+    fun caloriesBurned(userRepId: String, date: String) =
+        callbackFlow<DataState<BurnCalorieResponse>> {
+            offer(DataState.Loading(null))
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (!isClosedForSend) {
+                        val res = snapshot.getValue<BurnCalorieResponse>()
+                        if (res != null)
+                            offer(DataState.Success(res))
+                        else
+                            offer(DataState.Empty)
+                    }
+                    close()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    if (!isClosedForSend)
+                        offer(DataState.Error(error.message))
+                    close(error.toException().cause)
+                }
+            }
+            rootRef.child("user_daily").child(userRepId).child("workouts").child(date)
+                .addValueEventListener(listener)
+            awaitClose {
+                Log.e(TAG, "calorieBurned: CLOSE")
+            }
+        }
 
     companion object {
         private val TAG = DieterRealtimeDatabase::class.java.simpleName

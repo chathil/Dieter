@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Dieter</string>
+    <string name="channel_description">Dieter main notification channel</string>
 </resources>

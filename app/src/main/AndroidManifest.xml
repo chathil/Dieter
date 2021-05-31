@@ -13,6 +13,7 @@
         android:supportsRtl="true"
         android:name=".application.DieterApplication"
         android:theme="@style/Theme.Dieter">
+        <service android:name=".service.CountdownService" android:exported="false"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

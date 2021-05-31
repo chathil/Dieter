@@ -1,7 +1,10 @@
 package com.example.dieter.data.source
 
+import android.util.Log
 import com.example.dieter.data.source.domain.BodyWeightModel
+import com.example.dieter.data.source.domain.BurnCalorieModel
 import com.example.dieter.data.source.domain.SaveFoodModel
+import com.example.dieter.data.source.domain.SaveWorkoutModel
 import com.example.dieter.data.source.domain.SetBodyWeightModel
 import com.example.dieter.data.source.domain.SetGoalModel
 import com.example.dieter.data.source.domain.TodaysFoodModel
@@ -53,31 +56,34 @@ class DieterRepository @Inject constructor(
             }
         }
 
-    override fun todayNutrient(userRepId: String, date: String) = realtimeDatabase.todayNutrient(userRepId, date)
-    override fun todayFood(userRepId: String, date: String) = realtimeDatabase.todayFood(userRepId, date).map {
-        when (it) {
-            is DataState.Success -> {
-                if (it.data.isNotEmpty()) {
-                    val remap = it.data.map { data ->
-                        TodaysFoodModel(
-                            data.first,
-                            data.second.summary!!.type!!,
-                            data.second.summary!!.name!!,
-                            null,
-                            data.second.summary!!.nutrients!!["Energy"]?.toInt() ?: 0,
-                            Date(data.second.addedAt!!)
-                        )
+    override fun todayNutrient(userRepId: String, date: String) =
+        realtimeDatabase.todayNutrient(userRepId, date)
+
+    override fun todayFood(userRepId: String, date: String) =
+        realtimeDatabase.todayFood(userRepId, date).map {
+            when (it) {
+                is DataState.Success -> {
+                    if (it.data.isNotEmpty()) {
+                        val remap = it.data.map { data ->
+                            TodaysFoodModel(
+                                data.first,
+                                data.second.summary!!.type!!,
+                                data.second.summary!!.name!!,
+                                null,
+                                data.second.summary!!.nutrients!!["Energy"]?.toInt() ?: 0,
+                                Date(data.second.addedAt!!)
+                            )
+                        }
+                        DataState.Success(remap)
+                    } else {
+                        DataState.Loading(null)
                     }
-                    DataState.Success(remap)
-                } else {
-                    DataState.Loading(null)
                 }
+                is DataState.Error -> DataState.Error(it.exception)
+                is DataState.Loading -> DataState.Loading(null)
+                is DataState.Empty -> DataState.Empty
             }
-            is DataState.Error -> DataState.Error(it.exception)
-            is DataState.Loading -> DataState.Loading(null)
-            is DataState.Empty -> DataState.Empty
         }
-    }
 
     override fun newBodyWeight(
         userRepId: String,
@@ -107,6 +113,33 @@ class DieterRepository @Inject constructor(
                 is DataState.Empty -> DataState.Empty
             }
         }
+
+    override fun saveWorkouts(userRepId: String, workoutModel: SaveWorkoutModel) =
+        realtimeDatabase.saveWorkout(userRepId, workoutModel.asRequest())
+
+    override fun caloriesBurned(
+        userRepId: String,
+        date: String
+    ) = realtimeDatabase.caloriesBurned(userRepId, date).map {
+        Log.d(TAG, "caloriesBurned: $it")
+        when (it) {
+            is DataState.Success -> {
+                if (it.data.caloriesBurned == null) {
+                    DataState.Loading(null)
+                } else
+                    DataState.Success(
+                        BurnCalorieModel(
+                            it.data.caloriesBurned,
+                            it.data.caloriesToBurn ?: 0
+                        )
+                    )
+            }
+
+            is DataState.Error -> DataState.Error(it.exception)
+            is DataState.Loading -> DataState.Loading(null)
+            is DataState.Empty -> DataState.Empty
+        }
+    }
 
     companion object {
         private val TAG = DieterRepository::class.java.simpleName

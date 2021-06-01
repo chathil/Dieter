@@ -8,7 +8,6 @@ import okhttp3.MediaType
 import okhttp3.RequestBody
 import retrofit2.Retrofit
 import retrofit2.http.Body
-import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.POST
 

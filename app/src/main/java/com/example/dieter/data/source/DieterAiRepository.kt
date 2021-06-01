@@ -1,17 +1,13 @@
 package com.example.dieter.data.source
 
 import android.net.Uri
-import android.util.Log
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.core.net.toFile
 import com.example.dieter.application.DieterApplication
-import com.example.dieter.data.source.domain.DetectedObjectModel
 import com.example.dieter.data.source.remote.DieterAiRemoteDataSource
 import com.example.dieter.data.source.remote.response.asDomainModel
 import com.example.dieter.vo.DataState
 import id.zelory.compressor.Compressor
 import id.zelory.compressor.constraint.default
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import okhttp3.MediaType
 import okhttp3.RequestBody
@@ -24,7 +20,7 @@ class DieterAiRepository @Inject constructor(
         emit(DataState.Loading(null))
         try {
             // val byteData = data.toFile().readBytes()
-            val compressedFile = Compressor.compress(DieterApplication.applicationContext()!!, data.toFile()){
+            val compressedFile = Compressor.compress(DieterApplication.applicationContext()!!, data.toFile()) {
                 default(width = 320)
             }.readBytes()
             val body = RequestBody.create(MediaType.parse("image/jpg"), compressedFile)

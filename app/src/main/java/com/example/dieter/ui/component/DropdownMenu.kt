@@ -53,7 +53,7 @@ fun MeasurementDropdown(
             value = selectedText,
             onValueChange = {
                 selectedText = it
-                            },
+            },
             modifier = Modifier.fillMaxWidth(),
             readOnly = true,
             trailingIcon = {

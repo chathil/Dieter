@@ -50,7 +50,6 @@ fun CameraPreview(
                             it.setSurfaceProvider(previewView.surfaceProvider)
                         }
 
-
                     try {
                         // Must unbind the use-cases before rebinding them.
                         cameraProvider.unbindAll()

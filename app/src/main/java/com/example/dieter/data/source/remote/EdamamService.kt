@@ -42,7 +42,6 @@ interface EdamamService {
         @Query("app_key") apiKey: String = API_KEY,
         @Body body: NutrientRequest
     ): NutrientResponse
-
 }
 
 object EdamamApi {

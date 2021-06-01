@@ -13,7 +13,6 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -52,9 +51,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
@@ -72,7 +68,6 @@ import com.example.dieter.ui.component.MeasurementDropdown
 import com.example.dieter.ui.component.UpButton
 import com.example.dieter.ui.theme.DieterShapes
 import com.google.accompanist.glide.rememberGlidePainter
-import com.google.accompanist.imageloading.isFinalState
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.io.File
@@ -108,9 +103,13 @@ fun AddIngredientsScreen(
     }
     // 640x480.
     Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()) {
-        val imageCapture by remember { mutableStateOf(ImageCapture.Builder().setTargetResolution(
-            ASize(640, 480)
-        ).build()) }
+        val imageCapture by remember {
+            mutableStateOf(
+                ImageCapture.Builder().setTargetResolution(
+                    ASize(640, 480)
+                ).build()
+            )
+        }
         val ingredientState by appState.ingredientsState.collectAsState()
         Box {
             Column(
@@ -144,7 +143,7 @@ fun AddIngredientsScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    if(showLoading) {
+                    if (showLoading) {
                         Text("Uploading Uncompressed Image...")
                     }
                     ingredientState.forEach {
@@ -191,8 +190,11 @@ fun AddIngredientsScreen(
 @Composable
 fun OverlayedImage(uri: Uri, onClear: () -> Unit = {}) {
     val glide = rememberGlidePainter(request = uri)
-    Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.fillMaxWidth()
-        .height(384.dp)) {
+    Box(
+        contentAlignment = Alignment.BottomEnd,
+        modifier = Modifier.fillMaxWidth()
+            .height(384.dp)
+    ) {
         Image(
             glide,
             modifier = Modifier
@@ -235,7 +237,6 @@ private fun takePhoto(imageCapture: ImageCapture, onTaken: (Uri) -> Unit) {
 
     // Create output options object which contains file + metadata
     val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
 
     // Set up image capture listener, which is triggered after photo has
     // been taken

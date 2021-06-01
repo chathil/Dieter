@@ -79,13 +79,15 @@ class MainActivity : ComponentActivity() {
                         ) {
                             AppNameHeader()
                             Text("Error initializing app, make sure to have\na good connection and try again")
-                            OutlinedButton(onClick = {
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    "Retry is not yet supported, please re-install the app",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }) {
+                            OutlinedButton(
+                                onClick = {
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        "Retry is not yet supported, please re-install the app",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            ) {
                                 Text("Retry")
                             }
                         }
@@ -101,7 +103,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     else -> {
-
                     }
                 }
             }

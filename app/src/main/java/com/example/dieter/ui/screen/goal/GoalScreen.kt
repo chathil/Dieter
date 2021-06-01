@@ -302,7 +302,7 @@ private fun BMICalc(
                     state = weightState,
                     modifier = Modifier.width(144.dp)
                 ) {
-                    Text("Weight-cm")
+                    Text("Weight-kg")
                 }
             }
         }

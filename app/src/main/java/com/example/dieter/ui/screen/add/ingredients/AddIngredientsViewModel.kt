@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dieter.data.source.DieterAiRepository
 import com.example.dieter.data.source.EdamamRepository
-import com.example.dieter.data.source.domain.DetectedObjectModel
 import com.example.dieter.data.source.domain.IngredientModel
 import com.example.dieter.vo.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -50,11 +49,10 @@ class AddIngredientsViewModel @Inject constructor(
                         }
                     }
                     is DataState.Loading -> {
-
                     }
                     else -> {
                         _error.value = true
-                        Log.e(TAG, "predict: $it", )
+                        Log.e(TAG, "predict: $it",)
                     }
                 }
             }
@@ -75,7 +73,7 @@ class AddIngredientsViewModel @Inject constructor(
                     }
                     else -> {
                         _error.value = true
-                        Log.e(TAG, "searchIngredient: $it", )
+                        Log.e(TAG, "searchIngredient: $it",)
                     }
                 }
             }

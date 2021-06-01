@@ -69,7 +69,7 @@ fun CalculateScreen(
     val eachIngredients by viewModel.state.collectAsState()
     val uri by appState.photoUri.collectAsState()
 
-    if(eachIngredients.isNullOrEmpty()) {
+    if (eachIngredients.isNullOrEmpty()) {
         viewModel.details(ingredients)
     }
     when (saveFoodState) {
@@ -170,7 +170,6 @@ fun CalculateScreen(
                         )
                     }
                     else -> { /*TODO: Do something*/
-
                     }
                 }
             }

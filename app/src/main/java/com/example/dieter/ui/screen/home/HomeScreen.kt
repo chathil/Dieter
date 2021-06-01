@@ -334,7 +334,8 @@ fun HomeScreen(
         Spacer(Modifier.size(22.dp))
         if (nutrients.isNotEmpty()) {
             nutrients.subList(
-                0, if (!expand) {
+                0,
+                if (!expand) {
                     if (nutrients.size < 5) nutrients.size else 5
                 } else {
                     nutrients.size
@@ -365,7 +366,10 @@ fun HomeScreen(
         }
 
         IconButton(onClick = { expand = !expand }) {
-            Icon(imageVector = if(expand) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, contentDescription = "expand")
+            Icon(
+                imageVector = if (expand) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                contentDescription = "expand"
+            )
         }
 
         Column(
@@ -426,7 +430,7 @@ fun HomeScreen(
         Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
             Spacer(Modifier.size(16.dp))
             bodyWeightEntries.forEach {
-                BodyWeightBar(weightModelSet = it)
+                BodyWeightBar(weightModelSet = it, modifier = Modifier.clickable { })
                 Spacer(Modifier.size(8.dp))
             }
             Spacer(Modifier.size(16.dp))
@@ -708,13 +712,36 @@ private fun BodyWeightBar(weightModelSet: BodyWeightModel, modifier: Modifier = 
         Box(modifier = Modifier.height(202.dp), contentAlignment = Alignment.BottomCenter) {
             DieterVerticalBarChart(
                 progress = (weightModelSet.current / weightModelSet.target.toFloat()),
-                label = weightModelSet.current.toString()
+                label = weightModelSet.current.toString(),
             )
         }
         Spacer(Modifier.size(8.dp))
         Text(entriedAt, style = MaterialTheme.typography.caption)
     }
 }
+
+// @Composable
+// fun BodyWeightDropdown(
+//     expanded: Boolean = remember {
+//         mutableStateOf(false)
+//     }
+// ) {
+//     DropdownMenu(
+//         expanded = expanded,
+//         onDismissRequest = { expanded = false }
+//     ) {
+//         DropdownMenuItem(onClick = { /* Handle refresh! */ }) {
+//             Text("Delete")
+//         }
+//         Divider()
+//         DropdownMenuItem(onClick = { /* Handle settings! */ }) {
+//             Text("Help")
+//         }
+//         DropdownMenuItem(onClick = { /* Handle send feedback! */ }) {
+//             Text("Send Feedback")
+//         }
+//     }
+// }
 
 @Composable
 private fun BodyWeight(

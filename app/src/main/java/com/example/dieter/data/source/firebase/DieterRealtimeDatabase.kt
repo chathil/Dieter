@@ -146,11 +146,8 @@ class DieterRealtimeDatabase @Inject constructor(
             offer(DataState.Loading(null))
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    if (!isClosedForSend) {
-                        val res = snapshot.getValue<Map<String, Float>>() ?: emptyMap()
-                        offer(DataState.Success(res))
-                    }
-                    close()
+                    val res = snapshot.getValue<Map<String, Float>>() ?: emptyMap()
+                    offer(DataState.Success(res))
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -174,17 +171,14 @@ class DieterRealtimeDatabase @Inject constructor(
 
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    if (!isClosedForSend) {
-                        // TODO: find a way to remove bang operator
-                        if (snapshot.hasChildren()) {
-                            val result =
-                                snapshot.children.map { child -> child.key!! to child.getValue<FoodResponse>()!! }
-                            offer(DataState.Success(result))
-                        } else {
-                            offer(DataState.Empty)
-                        }
+                    // TODO: find a way to remove bang operator
+                    if (snapshot.hasChildren()) {
+                        val result =
+                            snapshot.children.map { child -> child.key!! to child.getValue<FoodResponse>()!! }
+                        offer(DataState.Success(result))
+                    } else {
+                        offer(DataState.Empty)
                     }
-                    close()
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -223,17 +217,15 @@ class DieterRealtimeDatabase @Inject constructor(
             offer(DataState.Loading(null))
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    if (!isClosedForSend) {
-                        // TODO: find a way to remove bang operator
-                        if (snapshot.hasChildren()) {
-                            val result =
-                                snapshot.children.map { child -> child.key!! to child.getValue<BodyWeightResponse>()!! }
-                            offer(DataState.Success(result))
-                        } else {
-                            offer(DataState.Empty)
-                        }
+
+                    // TODO: find a way to remove bang operator
+                    if (snapshot.hasChildren()) {
+                        val result =
+                            snapshot.children.map { child -> child.key!! to child.getValue<BodyWeightResponse>()!! }
+                        offer(DataState.Success(result))
+                    } else {
+                        offer(DataState.Empty)
                     }
-                    close()
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -277,14 +269,12 @@ class DieterRealtimeDatabase @Inject constructor(
             offer(DataState.Loading(null))
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    if (!isClosedForSend) {
-                        val res = snapshot.getValue<BurnCalorieResponse>()
-                        if (res != null)
-                            offer(DataState.Success(res))
-                        else
-                            offer(DataState.Empty)
-                    }
-                    close()
+
+                    val res = snapshot.getValue<BurnCalorieResponse>()
+                    if (res != null)
+                        offer(DataState.Success(res))
+                    else
+                        offer(DataState.Empty)
                 }
 
                 override fun onCancelled(error: DatabaseError) {

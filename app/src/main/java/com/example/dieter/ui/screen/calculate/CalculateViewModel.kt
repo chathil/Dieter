@@ -1,6 +1,5 @@
 package com.example.dieter.ui.screen.calculate
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dieter.data.source.DieterRepository
@@ -86,7 +85,7 @@ class CalculateViewModel @Inject constructor(
                         _summaryState.value += Pair(v, current + (w ?: .01f))
                     } else {
                         if (w != null) {
-                            if(w > 0f) {
+                            if (w > 0f) {
                                 _summaryState.value += Pair(v, w)
                             }
                         }

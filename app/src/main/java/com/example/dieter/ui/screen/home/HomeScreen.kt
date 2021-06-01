@@ -126,9 +126,6 @@ fun HomeAccountGroup(
     val goal by homeViewModel.goal.collectAsState()
     var showGoalBanner by remember { mutableStateOf(false) }
     var goalModel by remember { mutableStateOf<GoalModel?>(null) }
-    var expand by remember {
-        mutableStateOf(false)
-    }
 
     when (goal) {
         is DataState.Success ->
@@ -719,29 +716,6 @@ private fun BodyWeightBar(weightModelSet: BodyWeightModel, modifier: Modifier = 
         Text(entriedAt, style = MaterialTheme.typography.caption)
     }
 }
-
-// @Composable
-// fun BodyWeightDropdown(
-//     expanded: Boolean = remember {
-//         mutableStateOf(false)
-//     }
-// ) {
-//     DropdownMenu(
-//         expanded = expanded,
-//         onDismissRequest = { expanded = false }
-//     ) {
-//         DropdownMenuItem(onClick = { /* Handle refresh! */ }) {
-//             Text("Delete")
-//         }
-//         Divider()
-//         DropdownMenuItem(onClick = { /* Handle settings! */ }) {
-//             Text("Help")
-//         }
-//         DropdownMenuItem(onClick = { /* Handle send feedback! */ }) {
-//             Text("Send Feedback")
-//         }
-//     }
-// }
 
 @Composable
 private fun BodyWeight(

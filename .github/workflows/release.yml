@@ -37,7 +37,7 @@ jobs:
           java-version: 11
 
       - name: Build all projects
-        run: ./scripts/gradlew_recursive.sh assembleDebug
+        run: ./gradlew assembleDebug
 
       - name: Create Release
         id: create_release

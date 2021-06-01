@@ -13,6 +13,8 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -39,14 +41,21 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.NavigateNext
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -57,14 +66,19 @@ import com.example.dieter.DieterAppState
 import com.example.dieter.R
 import com.example.dieter.application.DieterApplication
 import com.example.dieter.data.source.domain.IngredientModel
+import com.example.dieter.data.source.domain.MeasureModel
 import com.example.dieter.ui.component.CameraPreview
 import com.example.dieter.ui.component.MeasurementDropdown
 import com.example.dieter.ui.component.UpButton
 import com.example.dieter.ui.theme.DieterShapes
+import com.google.accompanist.glide.rememberGlidePainter
+import com.google.accompanist.imageloading.isFinalState
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
-
+import android.util.Size as ASize
 private const val PERMISSIONS_REQUEST_CODE = 100
 private val PERMISSIONS_REQUIRED = arrayOf(Manifest.permission.CAMERA)
 
@@ -81,6 +95,10 @@ fun AddIngredientsScreen(
     appState: DieterAppState
 ) {
     val context = LocalContext.current
+    val uri by appState.photoUri.collectAsState()
+    val scope = rememberCoroutineScope()
+    val showLoading by viewModel.loading.collectAsState()
+
     if (!hasPermissions(context)) {
         requestPermissions(
             context as Activity,
@@ -88,9 +106,11 @@ fun AddIngredientsScreen(
             PERMISSIONS_REQUEST_CODE
         )
     }
-
+    // 640x480.
     Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()) {
-        val imageCapture by remember { mutableStateOf(ImageCapture.Builder().build()) }
+        val imageCapture by remember { mutableStateOf(ImageCapture.Builder().setTargetResolution(
+            ASize(640, 480)
+        ).build()) }
         val ingredientState by appState.ingredientsState.collectAsState()
         Box {
             Column(
@@ -100,25 +120,18 @@ fun AddIngredientsScreen(
             ) {
                 /**
                  * TODO Camera keep printing error logs that makes it hard to read other logs
-                 * Disabling it for a while until there's a solution
+                 *
                  */
-                CameraPreview(
-                    imageCapture = imageCapture,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(384.dp)
-                )
-                // SimpleCameraPreview(
-                // imageCapture = imageCapture,
-                // modifier = Modifier
-                //     .fillMaxWidth()
-                //     .height(384.dp)
-                // )
-                // Spacer(
-                //     modifier = Modifier
-                //         .fillMaxWidth()
-                //         .height(384.dp)
-                // )
+                if (uri == null) {
+                    CameraPreview(
+                        imageCapture = imageCapture,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(384.dp)
+                    )
+                } else {
+                    OverlayedImage(uri!!, onClear = { appState.clearUri() })
+                }
                 Spacer(Modifier.size(12.dp))
                 Text(
                     "Take a picture to detect the\n" +
@@ -126,15 +139,24 @@ fun AddIngredientsScreen(
                     style = MaterialTheme.typography.h6
                 )
                 Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
+                    if(showLoading) {
+                        Text("Uploading Uncompressed Image...")
+                    }
                     ingredientState.forEach {
                         IngredientCard(
                             ingredientModel = it,
                             remove = { appState.removeIngredient(it.key) },
-                            onPortionUpdated = { p -> appState.updatePortion(it.key, p) }
+                            onPortionUpdated = { p ->
+                                appState.updatePortion(
+                                    it.key,
+                                    (p.first * p.second.weightInGrams).toInt()
+                                )
+                            }
                         )
                     }
                     Spacer(Modifier.size(136.dp))
@@ -148,7 +170,15 @@ fun AddIngredientsScreen(
         BottomBar(
             takePicture = {
                 takePhoto(imageCapture) {
-                    appState.photoUri = it
+                    appState.setUri(it)
+                    viewModel.predict(it)
+                    scope.launch {
+                        viewModel.state.collect { ds ->
+                            ds.forEach { d ->
+                                appState.addIngredient(d)
+                            }
+                        }
+                    }
                 }
             },
             searchIngredient = navigateToSearchIngredient,
@@ -158,16 +188,54 @@ fun AddIngredientsScreen(
     }
 }
 
+@Composable
+fun OverlayedImage(uri: Uri, onClear: () -> Unit = {}) {
+    val glide = rememberGlidePainter(request = uri)
+    Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.fillMaxWidth()
+        .height(384.dp)) {
+        Image(
+            glide,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(384.dp),
+            contentScale = ContentScale.Fit,
+            contentDescription = "taken pics"
+        )
+        // if(glide.loadState.isFinalState()) {
+        //     val res = ContentScale.Fit.computeScaleFactor(glide.intrinsicSize, Size(300f, 384f))
+        //     Canvas(modifier = Modifier.size(res.scaleX.dp, res.scaleY.dp)) {
+        //         val canvasWidth = size.width
+        //         val canvasHeight = size.height
+        //
+        //         drawLine(
+        //             start = Offset(x=canvasWidth, y = 0f),
+        //             end = Offset(x = 0f, y = canvasHeight),
+        //             color = Color.Blue,
+        //             strokeWidth = 5F
+        //         )
+        //
+        //     }
+        // }
+
+        IconButton(onClick = onClear) {
+            Icon(
+                imageVector = Icons.Filled.Refresh,
+                contentDescription = "reload/ retake"
+            )
+        }
+    }
+}
+
 private const val FILENAME = "yyyy-MM-dd-HH-mm-ss-SSS"
 private const val PHOTO_EXTENSION = ".jpg"
 private fun takePhoto(imageCapture: ImageCapture, onTaken: (Uri) -> Unit) {
-    Log.d("takePhoto", "takePhoto: Called")
     // TODO: Remove bang operator
     val context = DieterApplication.applicationContext()!!
     val photoFile = createFile(getOutputDirectory(context), FILENAME, PHOTO_EXTENSION)
 
     // Create output options object which contains file + metadata
     val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
 
     // Set up image capture listener, which is triggered after photo has
     // been taken
@@ -211,7 +279,7 @@ private fun BottomBar(
     modifier: Modifier = Modifier,
     searchIngredient: () -> Unit = {},
     takePicture: () -> Unit = {},
-    next: () -> Unit = {}
+    next: () -> Unit = {},
 ) {
     Surface(
         elevation = 8.dp,
@@ -235,6 +303,7 @@ private fun BottomBar(
                     contentDescription = "search"
                 )
             }
+
             IconButton(
                 onClick = takePicture
             ) {
@@ -260,8 +329,9 @@ private fun BottomBar(
 private fun IngredientCard(
     ingredientModel: Map.Entry<IngredientModel, Int>,
     remove: () -> Unit = {},
-    onPortionUpdated: (Int) -> Unit = {}
+    onPortionUpdated: (Pair<Int, MeasureModel>) -> Unit = {}
 ) {
+    var selectedMeasures by remember { mutableStateOf<MeasureModel?>(null) }
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -288,6 +358,9 @@ private fun IngredientCard(
 
             MeasurementDropdown(
                 measurements = ingredientModel.key.measures,
+                onSelected = {
+                    selectedMeasures = it
+                },
                 modifier = Modifier
                     .padding(start = 8.dp, bottom = 8.dp, end = 8.dp)
                     .width(214.dp)
@@ -296,7 +369,17 @@ private fun IngredientCard(
             OutlinedTextField(
                 value = ingredientModel.value.toString(),
                 onValueChange = {
-                    onPortionUpdated(it.toIntOrNull() ?: 0)
+
+                    onPortionUpdated(
+                        Pair(
+                            it.toIntOrNull() ?: 0,
+                            selectedMeasures ?: MeasureModel(
+                                "http://www.edamam.com/ontologies/edamam.owl#Measure_gram",
+                                "Gram",
+                                1.0f
+                            )
+                        )
+                    )
                 },
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                 modifier = Modifier

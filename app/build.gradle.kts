@@ -81,6 +81,7 @@ dependencies {
     implementation(Libs.kotlinxCollections)
     implementation(Libs.hiltNavigationCompose)
     implementation(Libs.playServicesAuth)
+    implementation(Libs.compressor)
 
     implementation(Libs.Coroutines.core)
     implementation(Libs.Coroutines.android)

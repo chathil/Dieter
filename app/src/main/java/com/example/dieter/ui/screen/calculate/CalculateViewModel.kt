@@ -24,38 +24,13 @@ class CalculateViewModel @Inject constructor(
     private val dieterRepository: DieterRepository,
 ) : ViewModel() {
 
-    private val fakeSummary = mapOf(
-        NutrientType.ENERC_KCAL to 100f,
-        NutrientType.CHOCDF to 5f,
-        NutrientType.FAT to 5f,
-        NutrientType.FIBTG to 10f,
-        NutrientType.PROCNT to 10f
-    )
-
-    private val fakeIngredientModel = IngredientModel(
-        id = "01ff", label = "Broccoli",
-        weight = 56.0f,
-        nutrients = mapOf(
-            NutrientType.ENERC_KCAL to 9f,
-            NutrientType.FIBTG to 10f,
-            NutrientType.CA to 2f,
-            NutrientType.FAT to 39f,
-            NutrientType.P to 45f
-        ),
-        category = "Meal", categoryLabel = "Meal Label", measures = emptyList(), image = null
-    )
-    private val fakeDetailSuccess =
-        DataState.Success(DetailIngredientModel(listOf(), listOf(), listOf(), fakeSummary))
-    private val fakeEachIngredient = mapOf(fakeIngredientModel to fakeDetailSuccess)
-
-    private val _summaryState = MutableStateFlow<Map<NutrientType, Float?>>(fakeSummary)
+    private val _summaryState = MutableStateFlow<Map<NutrientType, Float?>>(emptyMap())
 
     val summaryState: StateFlow<Map<NutrientType, Float?>>
         get() = _summaryState
 
-    private val _state = MutableStateFlow<Map<IngredientModel, DataState<DetailIngredientModel>>>(
-        fakeEachIngredient
-    )
+    private val _state =
+        MutableStateFlow<Map<IngredientModel, DataState<DetailIngredientModel>>>(emptyMap())
 
     val state: StateFlow<Map<IngredientModel, DataState<DetailIngredientModel>>>
         get() = _state
@@ -69,17 +44,30 @@ class CalculateViewModel @Inject constructor(
      */
     fun saveToFirebase(userRepId: String, name: String, type: FoodType) {
         val summary = SaveFoodModel.SaveSummaryModel(name, type, summaryState.value)
+        val cautions = emptySet<String>().toMutableSet()
+        val dietLabels = emptySet<String>().toMutableSet()
+        val healthLabels = emptySet<String>().toMutableSet()
+
+        val res = _state.value.map { (t, u) ->
+            if (u is DataState.Success) {
+                cautions.addAll(u.data.cautions)
+                dietLabels.addAll(u.data.dietLabels)
+                healthLabels.addAll(u.data.healthLabels)
+                t to u.data
+            } else {
+                t to null
+            }
+        }.toMap()
+
         val saveFood = SaveFoodModel(
-            emptyList(),
-            emptyList(),
-            emptyList(),
+            cautions.toList(),
+            dietLabels.toList(),
+            healthLabels.toList(),
             summary,
-            fakeEachIngredient.map { (k, v) -> k to v.data }.toMap()
+            res
         )
-        // forward to firebase
         viewModelScope.launch {
             dieterRepository.saveFood(userRepId, saveFood).collect {
-                Log.d(TAG, "saveToFirebase: $it")
                 _saveFoodState.value = it
             }
         }
@@ -89,18 +77,30 @@ class CalculateViewModel @Inject constructor(
      * Sum everything and save it to summary state
      */
     private fun review() {
+        _summaryState.value = emptyMap()
+        _state.value.forEach { (t, u) ->
+            if (u is DataState.Success) {
+                u.data.totalNutrients.forEach { (v, w) ->
+                    if (_summaryState.value.containsKey(v)) {
+                        val current = _summaryState.value[v]!!
+                        _summaryState.value += Pair(v, current + (w ?: .01f))
+                    } else {
+                        if (w != null) {
+                            if(w > 0f) {
+                                _summaryState.value += Pair(v, w)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    fun details(ingredients: List<IngredientModel>) {
+    fun details(ingredients: Map<IngredientModel, Int>) {
         ingredients.forEach {
             viewModelScope.launch {
-                edamamRepository.ingredientDetail(it).collect {
+                edamamRepository.ingredientDetail(it.key, it.value).collect {
                     _state.value += it
-                    /**
-                     * Possible problem
-                     * Every value is going to be initialized by empty DataState causing
-                     * review to calculate too early, even though it will re-calculate later
-                     * */
                     if (_state.value.size == ingredients.size) {
                         review()
                     }

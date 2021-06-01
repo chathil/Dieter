@@ -19,7 +19,7 @@ data class SaveFoodRequest(
     val dietLabels: List<String>,
     val healthLabels: List<String>,
     val summary: SaveSummaryRequest,
-    val ingredients: List<SaveIngredientRequest>
+    val ingredients: List<SaveIngredientRequest>?
 ) {
     data class SaveSummaryRequest(
         val name: String,
@@ -29,7 +29,6 @@ data class SaveFoodRequest(
 
     data class SaveIngredientRequest(
         val name: String,
-        val weight: Float,
         val nutrients: Map<String, Float?>
     )
 }

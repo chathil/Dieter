@@ -1,6 +1,5 @@
 package com.example.dieter.ui.screen.workout
 
-import android.os.CountDownTimer
 import android.util.Log
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
@@ -146,6 +145,7 @@ class WorkoutViewModel @Inject constructor(
         }
         val save = SaveWorkoutModel(workouts, burned.toInt())
         _dones.value = emptySet()
+        clearTodos()
         viewModelScope.launch {
             dieterRepository.saveWorkouts(userRepId, save).collect {
                 _saveWorkoutState.value = it
@@ -153,38 +153,9 @@ class WorkoutViewModel @Inject constructor(
         }
     }
 
-    fun startQueue() {
-        val timeInMillis = todos.value.map { it.key to (it.value * 60 * 1000L) }.toMap()
-        todos.value.forEach { (t, u) ->
-            timers[t] = MutableStateFlow(u.toLong())
-        }
-        timer(timeInMillis.iterator())
-    }
-
-    private fun timer(
-        iterable:
-            Iterator<Map.Entry<WorkoutModel, Long>>
-    ) {
-        val item = iterable.next()
-        val timer = object : CountDownTimer(item.value, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                timers[item.key]?.value = millisUntilFinished
-                if (!isTicking.value) {
-                    cancel()
-                    timers[item.key]?.value = 0
-                }
-            }
-
-            override fun onFinish() {
-                if (iterable.hasNext()) {
-                    timer(iterable)
-                } else {
-                    _isTicking.value = false
-                    return
-                }
-            }
-        }
-        timer.start()
+    fun clearTodos() {
+        _todos.value = emptyMap()
+        _dones.value = emptySet()
     }
 
     fun tick(value: Boolean) {

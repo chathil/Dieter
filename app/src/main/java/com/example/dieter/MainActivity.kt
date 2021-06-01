@@ -9,16 +9,25 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Text
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import com.example.dieter.data.source.domain.ActiveCounterModel
 import com.example.dieter.service.CountdownService
+import com.example.dieter.ui.component.AppNameHeader
 import com.example.dieter.utils.LocalSysUiController
 import com.example.dieter.utils.SystemUiController
 import com.example.dieter.vo.DataState
@@ -62,7 +71,37 @@ class MainActivity : ComponentActivity() {
                             finishActivity = { finish() }
                         )
                     }
+                    is DataState.Error -> {
+                        Column(
+                            Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            AppNameHeader()
+                            Text("Error initializing app, make sure to have\na good connection and try again")
+                            OutlinedButton(onClick = {
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    "Retry is not yet supported, please re-install the app",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }) {
+                                Text("Retry")
+                            }
+                        }
+                    }
+                    is DataState.Loading -> {
+                        Column(
+                            Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            AppNameHeader()
+                            Text("Initializing...")
+                        }
+                    }
                     else -> {
+
                     }
                 }
             }

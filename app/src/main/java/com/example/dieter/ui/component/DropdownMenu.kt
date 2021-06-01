@@ -34,7 +34,8 @@ import com.example.dieter.ui.theme.DieterTheme
 @Composable
 fun MeasurementDropdown(
     modifier: Modifier = Modifier,
-    measurements: List<MeasureModel> = emptyList()
+    measurements: List<MeasureModel> = emptyList(),
+    onSelected: (MeasureModel) -> Unit = {}
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedText by remember { mutableStateOf("") }
@@ -50,7 +51,9 @@ fun MeasurementDropdown(
     Column(modifier = modifier) {
         OutlinedTextField(
             value = selectedText,
-            onValueChange = { selectedText = it },
+            onValueChange = {
+                selectedText = it
+                            },
             modifier = Modifier.fillMaxWidth(),
             readOnly = true,
             trailingIcon = {
@@ -67,6 +70,7 @@ fun MeasurementDropdown(
                 DropdownMenuItem(
                     onClick = {
                         selectedText = label.label
+                        onSelected(label)
                         expanded = false
                     }
                 ) {

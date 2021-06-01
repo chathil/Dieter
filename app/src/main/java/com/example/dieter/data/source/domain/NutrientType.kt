@@ -29,5 +29,9 @@ enum class NutrientType(val nutrientName: String, val nutrientUnit: String, val 
     VITC("Vitamin C", "mg"),
     VITD("Vitamin D", "æg"),
     VITK1("Vitamin K", "æg"),
-    THIA("Thiamin (B1)", "mg")
+    THIA("Thiamin (B1)", "mg"),
+    ZN("Zinc", "mg"), // TODO: might be wrong
+    FOLAC("Folac", "mg"), // TODO: might be wrong
+    WATER("Water", "mg"), // TODO: might be wrong
+    UNKNOWN("UNKNOWN", "--") // TODO: might be wrong
 }

@@ -84,6 +84,8 @@ fun WelcomeScreen(
     val pagerState = rememberPagerState(pageCount = 3)
     var loginState by remember { mutableStateOf<DataState<FirebaseUser>>(DataState.Empty) }
     var errorState by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
     Scaffold {
         Column(
             modifier = Modifier
@@ -115,7 +117,7 @@ fun WelcomeScreen(
                 }
 
                 // Start: Move all this to viewModel --------
-                val scope = rememberCoroutineScope()
+
                 when (loginState) {
                     is DataState.Success -> {
                         scope.launch {
@@ -147,6 +149,11 @@ fun WelcomeScreen(
                                 loginState = data
                             }
                         }
+                    },
+                    setPage = {
+                        scope.launch {
+                            pagerState.scrollToPage(it)
+                        }
                     }
                 )
                 // End: Move all this to viewModel ----------
@@ -158,29 +165,29 @@ fun WelcomeScreen(
 @Composable
 fun GlideGifImage(request: Int) {
     val requestManager = Glide.with(LocalContext.current).addDefaultRequestListener(object :
-            RequestListener<Any> {
-            override fun onLoadFailed(
-                e: GlideException?,
-                model: Any?,
-                target: Target<Any>?,
-                isFirstResource: Boolean
-            ): Boolean {
-                return false
-            }
+        RequestListener<Any> {
+        override fun onLoadFailed(
+            e: GlideException?,
+            model: Any?,
+            target: Target<Any>?,
+            isFirstResource: Boolean
+        ): Boolean {
+            return false
+        }
 
-            override fun onResourceReady(
-                resource: Any?,
-                model: Any?,
-                target: Target<Any>?,
-                dataSource: DataSource?,
-                isFirstResource: Boolean
-            ): Boolean {
-                if (resource is GifDrawable) {
-                    resource.setLoopCount(1)
-                }
-                return false
+        override fun onResourceReady(
+            resource: Any?,
+            model: Any?,
+            target: Target<Any>?,
+            dataSource: DataSource?,
+            isFirstResource: Boolean
+        ): Boolean {
+            if (resource is GifDrawable) {
+                resource.setLoopCount(1)
             }
-        })
+            return false
+        }
+    })
 
     Surface(
         Modifier
@@ -298,7 +305,8 @@ fun SlideNavigation(
     modifier: Modifier = Modifier,
     currentPage: Int = 0,
     navigateToHome: () -> Unit = {},
-    login: (String) -> Unit
+    login: (String) -> Unit,
+    setPage: (Int) -> Unit,
 ) {
     Row(
         modifier = modifier
@@ -333,9 +341,16 @@ fun SlideNavigation(
             .requestIdToken(stringResource(id = R.string.default_web_client_id))
             .requestEmail()
             .build()
-
+        val scope = rememberCoroutineScope()
         OutlinedButton(
             onClick = when (currentPage) {
+                0 -> {
+                    { setPage(1) }
+                }
+
+                1 -> {
+                    { setPage(2) }
+                }
                 2 -> {
                     {
                         val googleSignInClient =
@@ -384,6 +399,6 @@ fun SlidePreview() {
 @Composable
 fun SlideNavigationPreview() {
     DieterTheme {
-        SlideNavigation(login = {})
+        SlideNavigation(login = {}) {}
     }
 }

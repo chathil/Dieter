@@ -57,7 +57,9 @@ class CountdownService : Service() {
 
     private fun startQueue() {
         val timeInMillis = todos.map { it.key to (it.value * 60 * 1000L) }.toMap()
-        timer(timeInMillis.iterator())
+        if(!timeInMillis.isNullOrEmpty()) {
+            timer(timeInMillis.iterator())
+        }
     }
 
     private fun timer(

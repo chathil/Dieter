@@ -191,6 +191,7 @@ fun WorkoutScreen(
                                 sigint = true
                                 viewModel.tick(false)
                                 context.stopService(intent)
+                                viewModel.clearTodos()
                                 goUp()
                             }
                         )
@@ -198,16 +199,20 @@ fun WorkoutScreen(
 
                     PauseTimerButton(
                         onPause = {
-                            Toast.makeText(context, "You can't pause yet sorry:)", Toast.LENGTH_SHORT)
+                            Toast.makeText(
+                                context,
+                                "You can't pause yet sorry:)",
+                                Toast.LENGTH_SHORT
+                            )
                                 .show()
                         }
                     )
                 }
             else
                 StartTimerButton(
+                    enabled = todos.isNotEmpty(),
                     onStart = {
                         viewModel.tick(true)
-                        viewModel.startQueue()
                         intent.putExtra("todos", HashMap(todos))
                         intent.putExtra("user_rep_id", viewModel.userRepId)
                         context.startService(intent)
@@ -353,8 +358,13 @@ private fun CalorieBar(
 }
 
 @Composable
-private fun StartTimerButton(modifier: Modifier = Modifier, onStart: () -> Unit = {}) {
+private fun StartTimerButton(
+    modifier: Modifier = Modifier,
+    enabled: Boolean,
+    onStart: () -> Unit = {}
+) {
     OutlinedButton(
+        enabled = enabled,
         onClick = onStart,
         modifier = Modifier
             .fillMaxWidth()
@@ -423,7 +433,7 @@ private fun ButtonsPreview() {
     DieterTheme {
         Surface(modifier = Modifier.padding(16.dp)) {
             Column {
-                StartTimerButton()
+                StartTimerButton(enabled = false)
                 PauseTimerButton()
                 StopTimerButton()
             }

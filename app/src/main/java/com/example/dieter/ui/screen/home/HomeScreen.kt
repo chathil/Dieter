@@ -126,10 +126,13 @@ fun HomeAccountGroup(
     val goal by homeViewModel.goal.collectAsState()
     var showGoalBanner by remember { mutableStateOf(false) }
     var goalModel by remember { mutableStateOf<GoalModel?>(null) }
+    var expand by remember {
+        mutableStateOf(false)
+    }
 
     when (goal) {
         is DataState.Success ->
-            if ((goal as DataState.Success<GoalModel?>).data != null) {
+            if ((goal as DataState.Success<GoalModel?>).data?.isMale != null) {
                 val unwrappedData = (goal as DataState.Success<GoalModel?>).data
                 // it's impossible not to have target weight
                 goalModel = unwrappedData!!
@@ -256,7 +259,9 @@ fun HomeScreen(
 
     val loginState by homeViewModel.loginState.collectAsState()
     val linkDeviceState by homeViewModel.linkDeviceState.collectAsState()
-
+    var expand by remember {
+        mutableStateOf(false)
+    }
     val scrollState = rememberScrollState()
 
     // TODO: 31/05/21: Snackbar shown repeatedly
@@ -328,7 +333,13 @@ fun HomeScreen(
         )
         Spacer(Modifier.size(22.dp))
         if (nutrients.isNotEmpty()) {
-            nutrients.subList(0, nutrients.size).forEachIndexed { idx, nutrient ->
+            nutrients.subList(
+                0, if (!expand) {
+                    if (nutrients.size < 5) nutrients.size else 5
+                } else {
+                    nutrients.size
+                }
+            ).forEachIndexed { idx, nutrient ->
                 NutrientBar(
                     nutrient = NutrientModel(
                         nutrient.name,
@@ -350,11 +361,11 @@ fun HomeScreen(
                 Spacer(Modifier.size(12.dp))
             }
         } else {
-            Text("-/-")
+            Text("Nothing for now")
         }
 
-        IconButton(onClick = { /*TODO*/ }) {
-            Icon(imageVector = Icons.Filled.ExpandMore, contentDescription = "expand")
+        IconButton(onClick = { expand = !expand }) {
+            Icon(imageVector = if(expand) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, contentDescription = "expand")
         }
 
         Column(
@@ -627,7 +638,7 @@ private fun BurnCaloriesButton(
         }
         is DataState.Loading -> formattedValue = "Loading"
         is DataState.Error -> formattedValue = "Somethings wrong"
-        is DataState.Empty -> formattedValue = "Nothing for now"
+        is DataState.Empty -> formattedValue = "-/-"
     }
     Button(
         onClick = onClick,

@@ -7,5 +7,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface EdamamDataSource {
     fun searchIngredient(ingredient: String): Flow<DataState<List<IngredientModel>>>
-    fun ingredientDetail(ingredient: IngredientModel): Flow<Pair<IngredientModel, DataState<DetailIngredientModel>>>
+    fun ingredientDetail(ingredient: IngredientModel, quantity: Int): Flow<Pair<IngredientModel, DataState<DetailIngredientModel>>>
 }

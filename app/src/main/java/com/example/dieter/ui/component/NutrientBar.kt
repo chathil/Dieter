@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.dieter.data.source.domain.NutrientModel
+import com.example.dieter.utils.roundTo
 
 @Composable
 fun NutrientBar(nutrient: NutrientModel, modifier: Modifier = Modifier) {
@@ -26,7 +27,7 @@ fun NutrientBar(nutrient: NutrientModel, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(nutrient.name)
-            Text("${nutrient.current}/${nutrient.of} ${nutrient.unit}")
+            Text("${nutrient.current.roundTo(1)}/${nutrient.of} ${nutrient.unit}")
         }
         DieterProgressBar(progress = (nutrient.current / nutrient.of.toFloat()))
     }

@@ -7,7 +7,7 @@ data class SaveFoodModel(
     val dietLabels: List<String>,
     val healthLabels: List<String>,
     val summary: SaveSummaryModel,
-    val ingredients: Map<IngredientModel, DetailIngredientModel>
+    val ingredients: Map<IngredientModel, DetailIngredientModel?>
 ) {
     data class SaveSummaryModel(
         val name: String,
@@ -23,8 +23,8 @@ fun SaveFoodModel.asRequest(): SaveFoodRequest {
     val ings = ingredients.map {
         SaveFoodRequest.SaveIngredientRequest(
             it.key.label,
-            it.key.weight,
-            it.value.totalNutrients.map { n -> n.key.nutrientName to n.value }.toMap()
+            it.value?.totalNutrients?.map { n -> n.key.nutrientName to if (n.value == 0f) .01f else n.value } // TODO: Avoid this trick
+                ?.toMap() ?: emptyMap()
         )
     }
     return SaveFoodRequest(

@@ -46,6 +46,7 @@ import com.example.dieter.ui.component.TextFieldError
 import com.example.dieter.ui.component.TextFieldState
 import com.example.dieter.ui.component.UpButton
 import com.example.dieter.ui.theme.DieterTheme
+import com.example.dieter.utils.roundTo
 import com.example.dieter.vo.DataState
 import com.google.accompanist.glide.rememberGlidePainter
 import com.google.accompanist.insets.statusBarsPadding
@@ -63,6 +64,14 @@ fun CalculateScreen(
     var foodType by remember { mutableStateOf<FoodType?>(null) }
     val saveFoodState by viewModel.saveFoodState.collectAsState()
     var progress by remember { mutableStateOf("") }
+    val ingredients by appState.ingredientsState.collectAsState()
+    val summary by viewModel.summaryState.collectAsState()
+    val eachIngredients by viewModel.state.collectAsState()
+    val uri by appState.photoUri.collectAsState()
+
+    if(eachIngredients.isNullOrEmpty()) {
+        viewModel.details(ingredients)
+    }
     when (saveFoodState) {
         is DataState.Success -> save()
         is DataState.Loading -> if ((saveFoodState as DataState.Loading<Boolean>).data != null) progress =
@@ -71,6 +80,7 @@ fun CalculateScreen(
         is DataState.Empty -> {
         }
     }
+
     Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -91,7 +101,7 @@ fun CalculateScreen(
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Spacer(Modifier.size(16.dp))
-                if (appState.photoUri != null) {
+                if (uri != null) {
                     Image(
                         contentScale = ContentScale.Inside,
                         painter = rememberGlidePainter(request = appState.photoUri),
@@ -130,8 +140,7 @@ fun CalculateScreen(
                 }
                 Spacer(Modifier.size(72.dp))
             }
-            val summary by viewModel.summaryState.collectAsState()
-            val eachIngredients by viewModel.state.collectAsState()
+
             Spacer(Modifier.size(16.dp))
             NutrientList(modifier = Modifier.padding(horizontal = 16.dp), nutrients = summary)
             Spacer(Modifier.size(16.dp))
@@ -150,8 +159,8 @@ fun CalculateScreen(
                         .padding(horizontal = 16.dp)
                 ) {
                     Text(t.label, style = MaterialTheme.typography.subtitle2)
-                    // TODO: Replace with real value
-                    Text("56g", style = MaterialTheme.typography.caption)
+                    // TODO: Replace with real weight value
+                    Text("-", style = MaterialTheme.typography.caption)
                 }
                 when (u) {
                     is DataState.Success -> {
@@ -161,6 +170,7 @@ fun CalculateScreen(
                         )
                     }
                     else -> { /*TODO: Do something*/
+
                     }
                 }
             }
@@ -243,9 +253,10 @@ private fun NutrientList(
                 modifier = modifier.fillMaxWidth()
             ) {
                 Text(t.nutrientName, style = MaterialTheme.typography.caption)
-                Text("${u}${t.nutrientUnit} ", style = MaterialTheme.typography.caption)
+                Text("${u?.roundTo(1)}${t.nutrientUnit} ", style = MaterialTheme.typography.caption)
             }
         }
+        Spacer(Modifier.size(112.dp))
     }
 }
 

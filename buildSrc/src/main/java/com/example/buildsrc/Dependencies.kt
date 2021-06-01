@@ -12,6 +12,7 @@ object Libs {
     const val kotlinxCollections = "org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.3.4"
     const val hiltNavigationCompose = "androidx.hilt:hilt-navigation-compose:1.0.0-alpha01"
     const val playServicesAuth = "com.google.android.gms:play-services-auth:19.0.0"
+    const val compressor = "id.zelory:compressor:3.0.1"
 
     object Hilt {
         private const val version = "2.33-beta"

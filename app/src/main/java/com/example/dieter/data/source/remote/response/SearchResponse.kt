@@ -23,7 +23,6 @@ fun SearchResponse.asDomainModel() =
         IngredientModel(
             id = it.ingredients.id,
             label = it.ingredients.label,
-            weight = 9f, // TODO: Fix fake weight in search response
             nutrients = it.ingredients.nutrients.asDomainModel(),
             category = it.ingredients.category,
             categoryLabel = it.ingredients.categoryLabel,

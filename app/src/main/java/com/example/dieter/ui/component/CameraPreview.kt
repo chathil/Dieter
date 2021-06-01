@@ -1,8 +1,8 @@
 package com.example.dieter.ui.component
 
 import android.util.Log
+import android.util.Size
 import android.view.ViewGroup
-import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
@@ -33,6 +33,7 @@ fun CameraPreview(
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
                 // Preview is incorrectly scaled in Compose on some devices without this
+
                 implementationMode = PreviewView.ImplementationMode.COMPATIBLE
             }
 
@@ -43,11 +44,12 @@ fun CameraPreview(
                     val cameraProvider = cameraProviderFuture.get()
 
                     // Preview
-                    val preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                    val preview = Preview.Builder().setTargetResolution(Size(320, 320))
                         .build()
                         .also {
                             it.setSurfaceProvider(previewView.surfaceProvider)
                         }
+
 
                     try {
                         // Must unbind the use-cases before rebinding them.

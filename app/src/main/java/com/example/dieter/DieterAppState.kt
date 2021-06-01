@@ -29,7 +29,17 @@ class DieterAppState {
         _workoutDone.value = true
     }
 
-    var photoUri: Uri? = null
+    private val _photoUri = MutableStateFlow<Uri?>(null)
+    val photoUri: StateFlow<Uri?>
+        get() = _photoUri
+
+    fun setUri(uri: Uri) {
+        _photoUri.value = uri
+    }
+
+    fun clearUri() {
+        _photoUri.value = null
+    }
 
     fun updateCounter(counter: ActiveCounterModel) {
         _activeCounterState.value = counter
@@ -44,7 +54,6 @@ class DieterAppState {
         } else {
             _ingredientsState.value += Pair(ingredient, 1)
         }
-        Log.d(TAG, "addIngredient: ${_ingredientsState.value}")
     }
 
     fun updatePortion(ingredient: IngredientModel, portion: Int) {

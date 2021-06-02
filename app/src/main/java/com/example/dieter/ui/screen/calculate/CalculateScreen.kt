@@ -1,5 +1,6 @@
 package com.example.dieter.ui.screen.calculate
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,10 +20,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -173,6 +179,7 @@ fun CalculateScreen(
                     }
                 }
             }
+            Spacer(Modifier.size(112.dp))
         }
         SaveButton(
             modifier = Modifier.padding(bottom = 36.dp),
@@ -245,17 +252,52 @@ private fun NutrientList(
     modifier: Modifier = Modifier,
     nutrients: Map<NutrientType, Float?> = emptyMap()
 ) {
-    Column {
-        nutrients.forEach { (t, u) ->
+    var expand by remember { mutableStateOf(false) }
+
+    // val mapped = nutrients.map { it.name to it }.toMap()
+    val top5 = mutableMapOf<NutrientType, Float?>()
+    nutrients[NutrientType.ENERC_KCAL]?.let { top5.put(NutrientType.ENERC_KCAL, it) }
+    nutrients[NutrientType.CHOCDF]?.let { top5.put(NutrientType.CHOCDF, it) }
+    nutrients[NutrientType.FAT]?.let { top5.put(NutrientType.FAT, it) }
+    nutrients[NutrientType.FIBTG]?.let { top5.put(NutrientType.FIBTG, it) }
+    nutrients[NutrientType.PROCNT]?.let { top5.put(NutrientType.PROCNT, it) }
+
+    val reordered =
+        mapOf<NutrientType, Float?>().plus(nutrients - top5) as Map<NutrientType, Float?>
+
+    Column(
+        modifier = modifier.animateContentSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        top5.forEach { (t, u) ->
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(t.nutrientName, style = MaterialTheme.typography.caption)
                 Text("${u?.roundTo(1)}${t.nutrientUnit} ", style = MaterialTheme.typography.caption)
             }
         }
-        Spacer(Modifier.size(112.dp))
+        if (expand)
+            reordered.forEach { (t, u) ->
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(t.nutrientName, style = MaterialTheme.typography.caption)
+                    Text(
+                        "${u?.roundTo(1)}${t.nutrientUnit} ",
+                        style = MaterialTheme.typography.caption
+                    )
+                }
+            }
+        IconButton(onClick = { expand = !expand }) {
+            Icon(
+                imageVector = if (expand) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                contentDescription = "expand"
+            )
+        }
     }
 }
 

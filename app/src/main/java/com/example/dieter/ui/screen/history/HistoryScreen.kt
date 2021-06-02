@@ -2,6 +2,7 @@ package com.example.dieter.ui.screen.history
 
 import android.widget.CalendarView
 import androidx.appcompat.view.ContextThemeWrapper
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,16 +21,21 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.dieter.R
 import com.example.dieter.data.source.domain.NutrientModel
+import com.example.dieter.data.source.domain.NutrientType
 import com.example.dieter.ui.component.FoodCard
 import com.example.dieter.ui.component.NutrientBar
 import com.example.dieter.ui.component.UpButton
@@ -44,6 +50,9 @@ fun HistoryScreen(
 
     val nutrients by viewModel.nutrients.collectAsState()
     val todaysFoods by viewModel.todaysFood.collectAsState()
+    var expand by remember {
+        mutableStateOf(false)
+    }
 
     Column(
         modifier = Modifier
@@ -77,21 +86,41 @@ fun HistoryScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         )
-        nutrients.subList(0, nutrients.size).forEach { nutrient ->
-            NutrientBar(
-                nutrient = NutrientModel(
-                    nutrient.name,
-                    nutrient.current,
-                    nutrient.of,
-                    nutrient.unit
-                ),
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            Spacer(Modifier.size(12.dp))
+
+        val mapped = nutrients.map { it.name to it }.toMap()
+        val top5 = mutableListOf<NutrientModel>()
+        mapped[NutrientType.ENERC_KCAL.nutrientName]?.let { top5.add(it) }
+        mapped[NutrientType.CHOCDF.nutrientName]?.let { top5.add(it) }
+        mapped[NutrientType.FAT.nutrientName]?.let { top5.add(it) }
+        mapped[NutrientType.FIBTG.nutrientName]?.let { top5.add(it) }
+        mapped[NutrientType.PROCNT.nutrientName]?.let { top5.add(it) }
+        val toShow: List<NutrientModel> =
+            if (expand) listOf(top5, nutrients - top5).flatten() else top5
+
+        Column(
+            modifier = Modifier.animateContentSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            toShow.forEach { nutrient ->
+                NutrientBar(
+                    nutrient = NutrientModel(
+                        nutrient.name,
+                        nutrient.current,
+                        nutrient.of,
+                        nutrient.unit
+                    ),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(Modifier.size(12.dp))
+            }
+            IconButton(onClick = { expand = !expand }) {
+                Icon(
+                    imageVector = if (expand) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = "expand"
+                )
+            }
         }
-        IconButton(onClick = { /*TODO*/ }) {
-            Icon(imageVector = Icons.Filled.ExpandMore, contentDescription = "expand")
-        }
+
         HistorySection(
             title = "Foods",
             modifier = Modifier

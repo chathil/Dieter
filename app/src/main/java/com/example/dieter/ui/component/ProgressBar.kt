@@ -15,6 +15,7 @@
  */
 package com.example.dieter.ui.component
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +46,7 @@ fun DieterProgressBar(
     color: Color = MaterialTheme.colors.primaryVariant,
     borderColor: Color = MaterialTheme.colors.primary
 ) {
+    val animProgress: Float by animateFloatAsState(targetValue = progress)
     val progressBarShape = RoundedCornerShape(percent = 50)
     Column(modifier = modifier) {
         Box {
@@ -55,7 +58,7 @@ fun DieterProgressBar(
             )
             Spacer(
                 modifier = Modifier
-                    .fillMaxWidth(progress)
+                    .fillMaxWidth(animProgress)
                     .height(16.dp)
                     .clip(progressBarShape)
                     .background(
@@ -81,11 +84,13 @@ fun DieterVerticalBarChart(
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Box(contentAlignment = Alignment.BottomCenter) {
             Spacer(
-                modifier = Modifier.fillMaxHeight()
+                modifier = Modifier
+                    .fillMaxHeight()
                     .width(46.dp)
             )
             Spacer(
-                modifier = Modifier.fillMaxHeight(progress)
+                modifier = Modifier
+                    .fillMaxHeight(progress)
                     .width(46.dp)
                     .clip(progressBarShape)
                     .background(color)

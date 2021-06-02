@@ -1,0 +1,21 @@
+{
+  "rules": {
+    "user_goals": {
+      "$user_rep_id": {
+        ".indexOn": ["addedAt", "date"]
+      }
+    },
+    "user_weights": {
+      "$user_rep_id": {
+        ".indexOn": ["addedAt"]
+      }
+    },  
+    "user_workouts": {
+      "$user_rep_id": {
+        ".indexOn": ["addedAt", "date"]
+      }
+    },
+    ".read": true,
+    ".write": true
+  }
+}

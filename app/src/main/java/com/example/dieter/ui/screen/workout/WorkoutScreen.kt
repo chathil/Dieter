@@ -2,6 +2,8 @@ package com.example.dieter.ui.screen.workout
 
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -91,7 +93,11 @@ fun WorkoutScreen(
         if (finished) {
             goUp()
         }
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .animateContentSize()
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 UpButton(goUp)
                 Text(
@@ -130,6 +136,7 @@ fun WorkoutScreen(
                 )
 
                 if (todo?.workout == it) {
+
                     val progress = (todo!!.now) / (todo!!.peak).toFloat()
                     current = Pair(it, progress)
                     if (progress in 0.0f..0.1f)
@@ -309,16 +316,17 @@ private fun CalorieBar(
                 .fillMaxSize(),
             contentAlignment = Alignment.CenterStart
         ) {
-
+            val animToAdd: Float by animateFloatAsState(targetValue = (burnToBurn.first + toAdd) / burnToBurn.second)
             Spacer(
                 modifier = Modifier
-                    .fillMaxWidth((burnToBurn.first + toAdd) / burnToBurn.second)
+                    .fillMaxWidth(animToAdd)
                     .fillMaxHeight()
                     .background(
                         MaterialTheme.colors.primary,
                         DieterShapes.medium
                     )
                     .clip(DieterShapes.medium)
+                // .animateContentSize()
             )
 
             Spacer(
@@ -330,6 +338,7 @@ private fun CalorieBar(
                         DieterShapes.medium
                     )
                     .clip(DieterShapes.medium)
+                    .animateContentSize()
             )
 
             Row(

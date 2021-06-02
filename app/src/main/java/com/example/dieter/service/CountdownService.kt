@@ -161,7 +161,6 @@ class CountdownService : Service() {
 
     override fun onDestroy() {
         timer?.cancel()
-        Log.i(TAG, "onDestroy: Stop timer")
         notificationManagerCompat.cancel(COUNTDOWN_BR_COUNTER)
         super.onDestroy()
     }

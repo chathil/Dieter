@@ -4,6 +4,14 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -76,6 +84,7 @@ import com.example.dieter.data.source.domain.BurnCalorieModel
 import com.example.dieter.data.source.domain.FoodType
 import com.example.dieter.data.source.domain.GoalModel
 import com.example.dieter.data.source.domain.NutrientModel
+import com.example.dieter.data.source.domain.NutrientType
 import com.example.dieter.data.source.domain.SetBodyWeightModel
 import com.example.dieter.data.source.domain.TodaysFoodModel
 import com.example.dieter.ui.component.AppNameHeader
@@ -104,7 +113,9 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.absoluteValue
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun HomeAccountGroup(
     homeViewModel: HomeViewModel = viewModel(),
@@ -126,6 +137,12 @@ fun HomeAccountGroup(
     val goal by homeViewModel.goal.collectAsState()
     var showGoalBanner by remember { mutableStateOf(false) }
     var goalModel by remember { mutableStateOf<GoalModel?>(null) }
+    val scrollState = rememberScrollState()
+    var lastScrollIndex by remember { mutableStateOf(0) }
+    var scrollUp by remember { mutableStateOf(true) }
+    scrollUp = scrollState.value > lastScrollIndex
+    if ((scrollState.value - lastScrollIndex).absoluteValue > 112)
+        lastScrollIndex = scrollState.value
 
     when (goal) {
         is DataState.Success ->
@@ -166,68 +183,84 @@ fun HomeAccountGroup(
             showSyncDoneBar = null
         }
         Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()) {
-            if (toShow == MainDestinations.HOME_ROUTE) {
-                HomeScreen(
-                    homeViewModel = homeViewModel,
-                    temporaryId = temporaryId,
-                    history = history,
-                    burnCalories = burnCalories,
-                    goal = goalModel,
-                    setGoal = setGoal,
-                    showGoalBanner = showGoalBanner,
-                    onGoalClose = {
-                        showGoalBanner = false
-                    },
-                    error = {
-                        if (errorSnackBar == false) {
-                            errorSnackBar = true
+
+            Crossfade(targetState = toShow) { screen ->
+                if (screen == MainDestinations.HOME_ROUTE) {
+                    HomeScreen(
+                        homeViewModel = homeViewModel,
+                        temporaryId = temporaryId,
+                        history = history,
+                        burnCalories = burnCalories,
+                        goal = goalModel,
+                        setGoal = setGoal,
+                        showGoalBanner = showGoalBanner,
+                        onGoalClose = {
+                            showGoalBanner = false
+                        },
+                        error = {
+                            if (errorSnackBar == false) {
+                                errorSnackBar = true
+                            }
+                        },
+                        syncDone = {
+                            if (showSyncDoneBar == false)
+                                showSyncDoneBar = true
+                        },
+                        signInDone = {
+                            if (showLoginDoneBar == false) {
+                                showLoginDoneBar = true
+                            }
+                        },
+                        modifier = Modifier
+                            .statusBarsPadding()
+                            .fillMaxSize()
+                            .verticalScroll(scrollState)
+                    )
+                } else if (screen == MainDestinations.ACCOUNT_ROUTE) {
+                    AccountScreen(
+                        viewModel = accountViewModel,
+                        onNewGoal = {
+                            snackbarCoroutineScope.launch {
+                                scaffoldState.snackbarHostState.showSnackbar("Not yet implemented")
+                            }
+                        },
+                        backToWelcome = {
+                            snackbarCoroutineScope.launch {
+                                scaffoldState.snackbarHostState.showSnackbar("Not yet implemented")
+                            }
                         }
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = !scrollUp,
+                enter = fadeIn() + slideInVertically(),
+                exit = fadeOut() + slideOutVertically()
+            ) {
+                BottomBar(
+                    navigateHome = { toShow = MainDestinations.HOME_ROUTE },
+                    navigateToCalculateNutrients = navigateToCalculateNutrients,
+                    navigateToAccount = {
+                        if (Firebase.auth.currentUser == null)
+                            snackbarCoroutineScope.launch {
+                                scaffoldState.snackbarHostState.showSnackbar("Not signed in")
+                            }
+                        else
+                            toShow = MainDestinations.ACCOUNT_ROUTE
                     },
-                    syncDone = {
-                        if (showSyncDoneBar == false)
-                            showSyncDoneBar = true
-                    },
-                    signInDone = {
-                        if (showLoginDoneBar == false) {
-                            showLoginDoneBar = true
-                        }
-                    }
-                )
-            } else if (toShow == MainDestinations.ACCOUNT_ROUTE) {
-                AccountScreen(
-                    viewModel = accountViewModel,
-                    onNewGoal = {
-                        snackbarCoroutineScope.launch {
-                            scaffoldState.snackbarHostState.showSnackbar("Not yet implemented")
-                        }
-                    },
-                    backToWelcome = {
-                        snackbarCoroutineScope.launch {
-                            scaffoldState.snackbarHostState.showSnackbar("Not yet implemented")
-                        }
-                    }
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 36.dp)
                 )
             }
-            BottomBar(
-                navigateHome = { toShow = MainDestinations.HOME_ROUTE },
-                navigateToCalculateNutrients = navigateToCalculateNutrients,
-                navigateToAccount = {
-                    if (Firebase.auth.currentUser == null)
-                        snackbarCoroutineScope.launch {
-                            scaffoldState.snackbarHostState.showSnackbar("Not signed in")
-                        }
-                    else
-                        toShow = MainDestinations.ACCOUNT_ROUTE
-                },
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 36.dp)
-            )
         }
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
+    modifier: Modifier = Modifier,
     history: () -> Unit = {},
     burnCalories: () -> Unit = {},
     setGoal: () -> Unit = {},
@@ -259,7 +292,6 @@ fun HomeScreen(
     var expand by remember {
         mutableStateOf(false)
     }
-    val scrollState = rememberScrollState()
 
     // TODO: 31/05/21: Snackbar shown repeatedly
     // if the app is still open after signin, meaning it's still in the same session.
@@ -294,33 +326,31 @@ fun HomeScreen(
     }
 
     Column(
-        modifier = Modifier
-            .statusBarsPadding()
-            .fillMaxSize()
-            .verticalScroll(scrollState),
+        modifier = modifier,
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.size(16.dp))
         HomeAppBar(modifier = Modifier.padding(horizontal = 16.dp), historyTapped = history)
         Spacer(Modifier.size(12.dp))
-        if (showSignInBanner)
+        AnimatedVisibility(visible = showSignInBanner) {
             SignInBanner(
                 onClose = { showSignInBanner = false },
                 login = { token ->
                     homeViewModel.authWithGoogle(token)
                 }
             )
-        if (showTrialBanner) {
+        }
+        AnimatedVisibility(visible = showTrialBanner) {
             TrialBanner(onClose = { showTrialBanner = false })
         }
-
-        if (showGoalBanner) {
+        AnimatedVisibility(visible = showGoalBanner) {
             GoalBanner(
                 onClose = onGoalClose,
                 modifier = Modifier.clickable { setGoal() }
             )
         }
+
         Spacer(Modifier.size(12.dp))
         HomeSection(
             title = "Today's summary",
@@ -328,45 +358,55 @@ fun HomeScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         )
-        Spacer(Modifier.size(22.dp))
-        if (nutrients.isNotEmpty()) {
-            nutrients.subList(
-                0,
-                if (!expand) {
-                    if (nutrients.size < 5) nutrients.size else 5
-                } else {
-                    nutrients.size
-                }
-            ).forEachIndexed { idx, nutrient ->
-                NutrientBar(
-                    nutrient = NutrientModel(
-                        nutrient.name,
-                        nutrient.current,
-                        nutrient.of,
-                        nutrient.unit
-                    ),
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                if (idx == 0) {
-                    Spacer(Modifier.size(12.dp))
-                    BurnCaloriesButton(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp),
-                        burnCalorieModel = calories,
-                        onClick = burnCalories
-                    )
-                }
-                Spacer(Modifier.size(12.dp))
-            }
-        } else {
-            Text("Nothing for now")
-        }
 
-        IconButton(onClick = { expand = !expand }) {
-            Icon(
-                imageVector = if (expand) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                contentDescription = "expand"
-            )
+        Spacer(Modifier.size(22.dp))
+
+        Column(
+            modifier = Modifier.animateContentSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (nutrients.isNotEmpty()) {
+                val mapped = nutrients.map { it.name to it }.toMap()
+                val top5 = mutableListOf<NutrientModel>()
+                mapped[NutrientType.ENERC_KCAL.nutrientName]?.let { top5.add(it) }
+                mapped[NutrientType.CHOCDF.nutrientName]?.let { top5.add(it) }
+                mapped[NutrientType.FAT.nutrientName]?.let { top5.add(it) }
+                mapped[NutrientType.FIBTG.nutrientName]?.let { top5.add(it) }
+                mapped[NutrientType.PROCNT.nutrientName]?.let { top5.add(it) }
+                val toShow: List<NutrientModel> =
+                    if (expand) listOf(top5, nutrients - top5).flatten() else top5
+
+                toShow.forEachIndexed { idx, nutrient ->
+                    NutrientBar(
+                        nutrient = NutrientModel(
+                            nutrient.name,
+                            nutrient.current,
+                            nutrient.of,
+                            nutrient.unit
+                        ),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    if (idx == 0) {
+                        Spacer(Modifier.size(12.dp))
+                        BurnCaloriesButton(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp),
+                            burnCalorieModel = calories,
+                            onClick = burnCalories
+                        )
+                    }
+                    Spacer(Modifier.size(12.dp))
+                }
+            } else {
+                Text("Nothing for now")
+            }
+
+            IconButton(onClick = { expand = !expand }) {
+                Icon(
+                    imageVector = if (expand) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = "expand"
+                )
+            }
         }
 
         Column(
@@ -374,6 +414,7 @@ fun HomeScreen(
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .padding(horizontal = 16.dp)
+                .animateContentSize()
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -724,32 +765,34 @@ private fun BodyWeight(
     imeAction: ImeAction = ImeAction.Done,
     onImeAction: () -> Unit = {}
 ) {
-    TextField(
-        value = bodyWeightState.text,
-        onValueChange = {
-            bodyWeightState.text = it
-        },
-        label = {
-            Text("Body weight in kg", style = MaterialTheme.typography.body1)
-        },
-        modifier = modifier
-            .fillMaxWidth(.75f)
-            .onFocusChanged { focusState ->
-                val focused = focusState == FocusState.Active
-                bodyWeightState.onFocusChange(focused)
-                if (!focused) {
-                    bodyWeightState.enableShowErrors()
-                }
+    Column {
+        TextField(
+            value = bodyWeightState.text,
+            onValueChange = {
+                bodyWeightState.text = it
             },
-        isError = bodyWeightState.showErrors(),
-        keyboardOptions = KeyboardOptions.Default.copy(
-            imeAction = imeAction,
-            keyboardType = KeyboardType.Number
-        ),
-        keyboardActions = KeyboardActions(onDone = { onImeAction() })
-    )
-    bodyWeightState.getError()?.let {
-        TextFieldError(textError = it)
+            label = {
+                Text("Body weight in kg", style = MaterialTheme.typography.body1)
+            },
+            modifier = modifier
+                .fillMaxWidth(.75f)
+                .onFocusChanged { focusState ->
+                    val focused = focusState == FocusState.Active
+                    bodyWeightState.onFocusChange(focused)
+                    if (!focused) {
+                        bodyWeightState.enableShowErrors()
+                    }
+                },
+            isError = bodyWeightState.showErrors(),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = imeAction,
+                keyboardType = KeyboardType.Number
+            ),
+            keyboardActions = KeyboardActions(onDone = { onImeAction() })
+        )
+        bodyWeightState.getError()?.let {
+            TextFieldError(textError = it)
+        }
     }
 }
 

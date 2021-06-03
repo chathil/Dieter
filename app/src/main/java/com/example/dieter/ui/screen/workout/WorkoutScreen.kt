@@ -91,7 +91,7 @@ fun WorkoutScreen(
     }
 
     Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
-        if(finished) {
+        if (finished) {
             viewModel.tick(false)
             sigint = true
             viewModel.clearTodos()

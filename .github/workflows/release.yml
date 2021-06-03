@@ -57,3 +57,14 @@ jobs:
             asset_path: app/build/outputs/apk/debug/app-debug.apk
             asset_name: dieter-debug.apk
             asset_content_type: application/vnd.android.package-archive
+            
+      - uses: actions/checkout@v2
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        
+      - name: Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: "Dieter {{ env.RELEASE_VERSION }} has been released, checkout this url for what's new: https://github.com/chathil/Dieter/releases/tag/{{ env.RELEASE_VERSION }} or this url to download it directly https://github.com/chathil/Dieter/releases/download/v1.0.0-alpha02/dieter-debug.apk" 

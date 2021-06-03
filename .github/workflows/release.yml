@@ -45,8 +45,8 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
-          draft: true
-          prerelease: false
+          draft: false
+          prerelease: true
     
       - name: Upload apk
         uses: actions/upload-release-asset@v1
@@ -71,4 +71,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: "Dieter {{ RELEASE_VERSION }} has been released, checkout this url for what's new: https://github.com/chathil/Dieter/releases/tag/{{ RELEASE_VERSION }} or this url to download it directly https://github.com/chathil/Dieter/releases/download/{{ RELEASE_VERSION }}/dieter-debug.apk"
+          args: "Dieter {{ RELEASE_VERSION }} has been released, checkout [what's new](https://github.com/chathil/Dieter/releases/tag/{{ RELEASE_VERSION }}) or [download](https://github.com/chathil/Dieter/releases/download/{{ RELEASE_VERSION }}/dieter-debug.apk)"

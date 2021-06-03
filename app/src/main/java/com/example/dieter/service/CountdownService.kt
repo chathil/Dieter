@@ -130,7 +130,8 @@ class CountdownService : Service() {
                             notificationManagerCompat.notify(COUNTDOWN_BR_SAVE, builder.build())
                         }
                         is DataState.Error -> {
-
+                            bi.putExtra("is_done", true)
+                            sendBroadcast(bi)
                             builder.setContentTitle("Error saving workouts")
                                 .setContentText("hmm, sorry :)")
                             notificationManagerCompat.notify(COUNTDOWN_BR_SAVE, builder.build())

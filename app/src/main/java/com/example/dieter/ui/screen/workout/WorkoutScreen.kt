@@ -1,6 +1,7 @@
 package com.example.dieter.ui.screen.workout
 
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
@@ -91,7 +92,10 @@ fun WorkoutScreen(
 
     Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
         if (finished) {
-            goUp()
+            viewModel.tick(false)
+            sigint = true
+            viewModel.clearTodos()
+            Log.d("WorkoutScreen", "WorkoutScreen: $finished")
         }
         Column(
             modifier = Modifier
@@ -326,7 +330,6 @@ private fun CalorieBar(
                         DieterShapes.medium
                     )
                     .clip(DieterShapes.medium)
-                // .animateContentSize()
             )
 
             Spacer(

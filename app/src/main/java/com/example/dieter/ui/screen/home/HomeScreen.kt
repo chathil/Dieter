@@ -140,6 +140,7 @@ fun HomeAccountGroup(
     val scrollState = rememberScrollState()
     var lastScrollIndex by remember { mutableStateOf(0) }
     var scrollUp by remember { mutableStateOf(true) }
+
     scrollUp = scrollState.value > lastScrollIndex
     if ((scrollState.value - lastScrollIndex).absoluteValue > 112)
         lastScrollIndex = scrollState.value

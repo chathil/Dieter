@@ -59,19 +59,16 @@ jobs:
             asset_content_type: application/vnd.android.package-archive
             
       - uses: actions/checkout@v2
-      - name: Set output
-        id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
-      - name: Check output
-        env:
-          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Test
         run: |
           echo $RELEASE_VERSION
-          echo ${{ steps.vars.outputs.tag }}
+          echo ${{ env.RELEASE_VERSION }}
 
       - name: Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: "Dieter {{ steps.vars.outputs.tag }} has been released, checkout this url for what's new: https://github.com/chathil/Dieter/releases/tag/{{ steps.vars.outputs.tag }} or this url to download it directly https://github.com/chathil/Dieter/releases/download/{{ steps.vars.outputs.tag }}/dieter-debug.apk"
+          args: "Dieter {{ RELEASE_VERSION }} has been released, checkout this url for what's new: https://github.com/chathil/Dieter/releases/tag/{{ RELEASE_VERSION }} or this url to download it directly https://github.com/chathil/Dieter/releases/download/{{ RELEASE_VERSION }}/dieter-debug.apk"

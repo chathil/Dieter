@@ -74,6 +74,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 import android.util.Size as ASize
+
 private const val PERMISSIONS_REQUEST_CODE = 100
 private val PERMISSIONS_REQUIRED = arrayOf(Manifest.permission.CAMERA)
 
@@ -93,6 +94,7 @@ fun AddIngredientsScreen(
     val uri by appState.photoUri.collectAsState()
     val scope = rememberCoroutineScope()
     val showLoading by viewModel.loading.collectAsState()
+    val ingredientState by appState.ingredientsState.collectAsState()
 
     if (!hasPermissions(context)) {
         requestPermissions(
@@ -101,7 +103,6 @@ fun AddIngredientsScreen(
             PERMISSIONS_REQUEST_CODE
         )
     }
-    // 640x480.
     Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()) {
         val imageCapture by remember {
             mutableStateOf(
@@ -110,7 +111,6 @@ fun AddIngredientsScreen(
                 ).build()
             )
         }
-        val ingredientState by appState.ingredientsState.collectAsState()
         Box {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -181,6 +181,7 @@ fun AddIngredientsScreen(
                 }
             },
             searchIngredient = navigateToSearchIngredient,
+            enableNext = ingredientState.isNotEmpty(),
             next = calculateNutrients,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 36.dp)
         )
@@ -192,7 +193,8 @@ fun OverlayedImage(uri: Uri, onClear: () -> Unit = {}) {
     val glide = rememberGlidePainter(request = uri)
     Box(
         contentAlignment = Alignment.BottomEnd,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .height(384.dp)
     ) {
         Image(
@@ -280,6 +282,7 @@ private fun BottomBar(
     modifier: Modifier = Modifier,
     searchIngredient: () -> Unit = {},
     takePicture: () -> Unit = {},
+    enableNext: Boolean,
     next: () -> Unit = {},
 ) {
     Surface(
@@ -315,7 +318,8 @@ private fun BottomBar(
                 )
             }
             IconButton(
-                onClick = next
+                onClick = next,
+                enabled = enableNext,
             ) {
                 Icon(
                     imageVector = Icons.Filled.NavigateNext,

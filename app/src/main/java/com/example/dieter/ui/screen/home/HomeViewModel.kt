@@ -174,7 +174,6 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             dieterRepository.caloriesBurned(userRepId, nowString).collect {
                 _calories.value = it
-                Log.d(TAG, "calories: $it")
             }
         }
     }

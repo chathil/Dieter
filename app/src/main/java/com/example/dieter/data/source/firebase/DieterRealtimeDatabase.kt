@@ -157,10 +157,11 @@ class DieterRealtimeDatabase @Inject constructor(
                 }
             }
 
-            rootRef.child("user_daily").child(userRepId).child("nutrients").child(date)
-                .addValueEventListener(listener)
+            val ref = rootRef.child("user_daily").child(userRepId).child("nutrients").child(date)
+            ref.addValueEventListener(listener)
 
             awaitClose {
+                ref.removeEventListener(listener)
                 Log.e(TAG, "todayNutrient: CLOSE")
             }
         }
@@ -188,9 +189,11 @@ class DieterRealtimeDatabase @Inject constructor(
                 }
             }
 
-            rootRef.child("user_intakes").child(userRepId).orderByChild("date").equalTo(date)
-                .addValueEventListener(listener)
+            val ref =
+                rootRef.child("user_intakes").child(userRepId).orderByChild("date").equalTo(date)
+            ref.addValueEventListener(listener)
             awaitClose {
+                ref.removeEventListener(listener)
                 Log.e(TAG, "todayFood: CLOSE")
             }
         }
@@ -234,9 +237,10 @@ class DieterRealtimeDatabase @Inject constructor(
                     close(error.toException().cause)
                 }
             }
-            rootRef.child("user_weights").child(userRepId).orderByChild("addedAt")
-                .addValueEventListener(listener)
+            val ref = rootRef.child("user_weights").child(userRepId).orderByChild("addedAt")
+            ref.addValueEventListener(listener)
             awaitClose {
+                ref.removeEventListener(listener)
                 Log.e(TAG, "bodyWeights: CLOSE")
             }
         }
@@ -269,7 +273,6 @@ class DieterRealtimeDatabase @Inject constructor(
             offer(DataState.Loading(null))
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-
                     val res = snapshot.getValue<BurnCalorieResponse>()
                     if (res != null)
                         offer(DataState.Success(res))
@@ -283,9 +286,11 @@ class DieterRealtimeDatabase @Inject constructor(
                     close(error.toException().cause)
                 }
             }
-            rootRef.child("user_daily").child(userRepId).child("workouts").child(date)
-                .addValueEventListener(listener)
+            val ref = rootRef.child("user_daily").child(userRepId).child("workouts").child(date)
+            ref.addValueEventListener(listener)
+
             awaitClose {
+                ref.removeEventListener(listener)
                 Log.e(TAG, "calorieBurned: CLOSE")
             }
         }

@@ -61,13 +61,11 @@ class WorkoutViewModel @Inject constructor(
     val todos: StateFlow<Map<WorkoutModel, Int>>
         get() = _todos
 
-    val timers = mutableMapOf<WorkoutModel, MutableStateFlow<Long>>()
-
     private val _saveWorkoutState = MutableStateFlow<DataState<Boolean>>(DataState.Loading(null))
     val saveWorkoutState: StateFlow<DataState<Boolean>>
         get() = _saveWorkoutState
 
-    private val _toAdd = MutableStateFlow<Float>(0f)
+    private val _toAdd = MutableStateFlow(0f)
     val toAdd: StateFlow<Float>
         get() = _toAdd
 
@@ -144,7 +142,6 @@ class WorkoutViewModel @Inject constructor(
             )
         }
         val save = SaveWorkoutModel(workouts, burned.toInt())
-        _dones.value = emptySet()
         clearTodos()
         viewModelScope.launch {
             dieterRepository.saveWorkouts(userRepId, save).collect {
@@ -156,6 +153,7 @@ class WorkoutViewModel @Inject constructor(
     fun clearTodos() {
         _todos.value = emptyMap()
         _dones.value = emptySet()
+        _toAdd.value = 0f
     }
 
     fun tick(value: Boolean) {

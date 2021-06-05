@@ -536,11 +536,11 @@ private fun TrialBanner(modifier: Modifier = Modifier, onClose: () -> Unit = {})
                     .padding(16.dp)
             ) {
                 Text(
-                    "You're on 2-months premium trials",
+                    "2-months trials activated",
                     style = MaterialTheme.typography.subtitle2
                 )
                 Text(
-                    "Just $0.70/month after. Cancel anytime",
+                    "Enjoy our premium features",
                     style = MaterialTheme.typography.body2
                 )
             }

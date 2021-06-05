@@ -29,6 +29,8 @@ import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -51,7 +53,10 @@ import com.example.dieter.ui.component.DieterDefaultButton
 import com.example.dieter.ui.component.TextFieldError
 import com.example.dieter.ui.component.TextFieldState
 import com.example.dieter.ui.component.UpButton
+import com.example.dieter.ui.theme.AlphaReallyTransparent
+import com.example.dieter.ui.theme.DieterShapes
 import com.example.dieter.ui.theme.DieterTheme
+import com.example.dieter.ui.theme.YellowPrimary
 import com.example.dieter.utils.roundTo
 import com.example.dieter.vo.DataState
 import com.google.accompanist.glide.rememberGlidePainter
@@ -72,6 +77,7 @@ fun CalculateScreen(
     var progress by remember { mutableStateOf("") }
     val ingredients by appState.ingredientsState.collectAsState()
     val summary by viewModel.summaryState.collectAsState()
+    val cautions by viewModel.cautions.collectAsState()
     val eachIngredients by viewModel.state.collectAsState()
     val uri by appState.photoUri.collectAsState()
 
@@ -144,11 +150,21 @@ fun CalculateScreen(
                         }
                     )
                 }
-                Spacer(Modifier.size(72.dp))
+                Spacer(Modifier.size(16.dp))
             }
 
+            if (cautions.isNotEmpty())
+                CautionCard(cautions = cautions)
+
             Spacer(Modifier.size(16.dp))
-            NutrientList(modifier = Modifier.padding(horizontal = 16.dp), nutrients = summary)
+            if (summary.isEmpty())
+                Text(
+                    "No nutrients info available :(",
+                    style = MaterialTheme.typography.subtitle1,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            else
+                NutrientList(modifier = Modifier.padding(horizontal = 16.dp), nutrients = summary)
             Spacer(Modifier.size(16.dp))
             Text(
                 "Nutrients for each ingredients",
@@ -170,10 +186,18 @@ fun CalculateScreen(
                 }
                 when (u) {
                     is DataState.Success -> {
-                        NutrientList(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            nutrients = u.data.totalNutrients
-                        )
+                        if (u.data.totalNutrients.isEmpty()) {
+                            Text(
+                                "No nutrients info available :(",
+                                style = MaterialTheme.typography.subtitle1,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        } else {
+                            NutrientList(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                nutrients = u.data.totalNutrients
+                            )
+                        }
                     }
                     else -> { /*TODO: Do something*/
                     }
@@ -183,7 +207,7 @@ fun CalculateScreen(
         }
         SaveButton(
             modifier = Modifier.padding(bottom = 36.dp),
-            enabled = (foodType != null) && mealNameState.text.isNotEmpty(),
+            enabled = (foodType != null) && mealNameState.text.isNotEmpty() && summary.isNotEmpty(),
             onClick = {
                 viewModel.saveToFirebase(userRepId, mealNameState.text, foodType!!)
             }
@@ -297,6 +321,45 @@ private fun NutrientList(
                 contentDescription = "expand"
             )
         }
+    }
+}
+
+@Composable
+private fun CautionCard(modifier: Modifier = Modifier, cautions: Set<String>) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .background(
+                YellowPrimary.copy(alpha = AlphaReallyTransparent),
+                shape = DieterShapes.small
+            )
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.Warning,
+            contentDescription = "caution",
+            tint = YellowPrimary,
+            modifier = Modifier
+                .size(64.dp)
+                .padding(8.dp)
+        )
+        Column {
+            Text("Cautions", style = MaterialTheme.typography.subtitle1)
+            val cautionsString = cautions.joinToString {
+                it.toLowerCase(Locale.ROOT).capitalize(Locale.ROOT)
+            }.replace('_', ' ', true)
+            Text(cautionsString, style = MaterialTheme.typography.body2)
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun CautionCardPreview() {
+    DieterTheme {
+        CautionCard(cautions = setOf("Hello", "This", "Is", "Cautions"))
     }
 }
 

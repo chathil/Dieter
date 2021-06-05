@@ -38,6 +38,9 @@ class CalculateViewModel @Inject constructor(
     val saveFoodState: StateFlow<DataState<Boolean>>
         get() = _saveFoodState
 
+    private val _cautions = MutableStateFlow(emptySet<String>())
+    val cautions: StateFlow<Set<String>> get() = _cautions
+
     /**
      * Add summary to firebase
      */
@@ -79,6 +82,7 @@ class CalculateViewModel @Inject constructor(
         _summaryState.value = emptyMap()
         _state.value.forEach { (_, u) ->
             if (u is DataState.Success) {
+                _cautions.value += u.data.cautions
                 u.data.totalNutrients.forEach { (v, w) ->
                     if (_summaryState.value.containsKey(v)) {
                         val current = _summaryState.value[v]!!

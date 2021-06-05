@@ -183,6 +183,48 @@ class HomeViewModel @Inject constructor(
             preferences[userRepKey]
         }
 
+    fun deleteBodyWeight(userRepId: String, weightModel: BodyWeightModel) {
+        _bodyWeightEntries.value -= weightModel
+        viewModelScope.launch {
+            dieterRepository.deleteBodyWeights(userRepId, weightModel.id).collect {
+                when (it) {
+                    is DataState.Success -> bodyWeights(userRepId)
+                    is DataState.Error -> _error.value = true
+                    is DataState.Loading -> {}
+                    is DataState.Empty -> {}
+                }
+            }
+        }
+    }
+
+    fun deleteTodaysFood(userRepId: String, food: TodaysFoodModel) {
+        _todaysFood.value -= food
+        viewModelScope.launch {
+            dieterRepository.deleteTodaysFood(userRepId, food.id).collect {
+                Log.d(TAG, "deleteTodaysFood: $it")
+                when (it) {
+                    is DataState.Success -> todayFood(userRepId)
+                    is DataState.Error -> _error.value = true
+                    is DataState.Loading -> {}
+                    is DataState.Empty -> {}
+                }
+            }
+        }
+    }
+
+    fun deleteTodaysWorkout(userRepId: String, key: String) {
+        viewModelScope.launch {
+            dieterRepository.deleteTodaysWorkout(userRepId, key).collect {
+                when (it) {
+                    is DataState.Success -> {}
+                    is DataState.Error -> _error.value = true
+                    is DataState.Loading -> {}
+                    is DataState.Empty -> {}
+                }
+            }
+        }
+    }
+
     companion object {
         private val TAG = HomeViewModel::class.java.simpleName
     }

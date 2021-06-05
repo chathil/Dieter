@@ -174,8 +174,12 @@ class DieterRealtimeDatabase @Inject constructor(
                 override fun onDataChange(snapshot: DataSnapshot) {
                     // TODO: find a way to remove bang operator
                     if (snapshot.hasChildren()) {
-                        val result =
-                            snapshot.children.map { child -> child.key!! to child.getValue<FoodResponse>()!! }
+                        val result: List<Pair<String, FoodResponse>> =
+                            snapshot.children.map { child ->
+                                if (child.key != null && child.getValue<FoodResponse>() != null) {
+                                    child.key!! to child.getValue<FoodResponse>()!!
+                                } else return
+                            }
                         offer(DataState.Success(result))
                     } else {
                         offer(DataState.Empty)
@@ -294,6 +298,54 @@ class DieterRealtimeDatabase @Inject constructor(
                 Log.e(TAG, "calorieBurned: CLOSE")
             }
         }
+
+    fun deleteTodaysFood(userRepId: String, key: String) = callbackFlow {
+        rootRef.child("user_intakes").child(userRepId).child(key).setValue(null)
+            .addOnSuccessListener {
+                if (!isClosedForSend)
+                    offer(Pair<Boolean, Exception?>(true, null))
+                close()
+            }.addOnFailureListener {
+                if (!isClosedForSend)
+                    offer(Pair<Boolean, Exception?>(false, it))
+                close(it)
+            }
+        awaitClose {
+            Log.e(TAG, "setToken: CLOSE")
+        }
+    }
+
+    fun deleteTodaysWorkout(userRepId: String, key: String) = callbackFlow {
+        rootRef.child("user_workouts").child(userRepId).child(key).setValue(null)
+            .addOnSuccessListener {
+                if (!isClosedForSend)
+                    offer(Pair<Boolean, Exception?>(true, null))
+                close()
+            }.addOnFailureListener {
+                if (!isClosedForSend)
+                    offer(Pair<Boolean, Exception?>(false, it))
+                close(it)
+            }
+        awaitClose {
+            Log.e(TAG, "setToken: CLOSE")
+        }
+    }
+
+    fun deleteBodyWeight(userRepId: String, key: String) = callbackFlow {
+        rootRef.child("user_weights").child(userRepId).child(key).setValue(null)
+            .addOnSuccessListener {
+                if (!isClosedForSend)
+                    offer(Pair<Boolean, Exception?>(true, null))
+                close()
+            }.addOnFailureListener {
+                if (!isClosedForSend)
+                    offer(Pair<Boolean, Exception?>(false, it))
+                close(it)
+            }
+        awaitClose {
+            Log.e(TAG, "setToken: CLOSE")
+        }
+    }
 
     companion object {
         private val TAG = DieterRealtimeDatabase::class.java.simpleName

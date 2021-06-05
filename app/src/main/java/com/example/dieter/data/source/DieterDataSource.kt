@@ -29,4 +29,7 @@ interface DieterDataSource {
     fun bodyWeights(userRepId: String): Flow<DataState<List<BodyWeightModel>>>
     fun saveWorkouts(userRepId: String, workoutModel: SaveWorkoutModel): Flow<DataState<Boolean>>
     fun caloriesBurned(userRepId: String, date: String): Flow<DataState<BurnCalorieModel>>
+    fun deleteTodaysFood(userRepId: String, key: String): Flow<DataState<Boolean>>
+    fun deleteTodaysWorkout(userRepId: String, key: String): Flow<DataState<Boolean>>
+    fun deleteBodyWeights(userRepId: String, key: String): Flow<DataState<Boolean>>
 }

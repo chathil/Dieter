@@ -128,7 +128,7 @@ fun HistoryScreen(
                 .padding(horizontal = 16.dp)
         )
         todaysFoods.forEach {
-            FoodCard(it, modifier = Modifier.padding(horizontal = 16.dp))
+            FoodCard(foodModel = it)
             Spacer(Modifier.size(8.dp))
         }
         Spacer(Modifier.size(64.dp))

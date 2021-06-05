@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -49,6 +51,7 @@ import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Face
@@ -74,6 +77,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dieter.MainDestinations
@@ -466,10 +470,10 @@ fun HomeScreen(
             }
         }
 
-        Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+        Row(modifier = Modifier.horizontalScroll(rememberScrollState()).height(232.dp)) {
             Spacer(Modifier.size(16.dp))
             bodyWeightEntries.forEach {
-                BodyWeightBar(weightModelSet = it, modifier = Modifier.clickable { })
+                BodyWeightBar(weightModelSet = it)
                 Spacer(Modifier.size(8.dp))
             }
             Spacer(Modifier.size(16.dp))
@@ -482,7 +486,11 @@ fun HomeScreen(
                 .padding(horizontal = 16.dp)
         )
         todaysFoods.forEach {
-            FoodCard(it, modifier = Modifier.padding(horizontal = 16.dp))
+            FoodCard(
+                foodModel = it, deletable = true,
+                onDelete = {
+                }
+            )
             Spacer(Modifier.size(8.dp))
         }
         Spacer(Modifier.size(216.dp))
@@ -749,22 +757,53 @@ private fun BodyWeightBar(weightModelSet: BodyWeightModel, modifier: Modifier = 
         "dd/MM",
         Locale.UK
     ).format(weightModelSet.date)
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.Bottom,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(modifier = Modifier.height(202.dp), contentAlignment = Alignment.BottomCenter) {
-            val progress = if (weightModelSet.target <= 0) {
-                weightModelSet.current / 1f
-            } else weightModelSet.current / weightModelSet.target.toFloat()
-            DieterVerticalBarChart(
-                progress = (progress),
-                label = weightModelSet.current.toString(),
-            )
+    var showDelete by remember { mutableStateOf(false) }
+    val offsetAnimControl by animateIntOffsetAsState(
+        targetValue = IntOffset(
+            0,
+            if (showDelete) 0 else 16
+        )
+    )
+
+    val progress = if (weightModelSet.target <= 0) {
+        weightModelSet.current / 1f
+    } else weightModelSet.current / weightModelSet.target.toFloat()
+
+    Column {
+        IconButton(
+            onClick = { showDelete = false },
+            modifier
+                .width(46.dp)
+                .height(if (showDelete) 64.dp else 0.dp)
+                .offset { offsetAnimControl }
+        ) {
+            Icon(imageVector = Icons.Filled.DeleteForever, contentDescription = "cancel")
         }
-        Spacer(Modifier.size(8.dp))
-        Text(entriedAt, style = MaterialTheme.typography.caption)
+
+        val offsetAnimBar by animateIntOffsetAsState(
+            targetValue = IntOffset(
+                0,
+                if (showDelete) 16 else 0
+            )
+        )
+
+        Column(
+            modifier = Modifier
+                .wrapContentHeight()
+                .offset { offsetAnimBar }
+                .clickable { showDelete = !showDelete },
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(modifier = Modifier.height(202.dp), contentAlignment = Alignment.BottomCenter) {
+                DieterVerticalBarChart(
+                    progress = (progress),
+                    label = weightModelSet.current.toString()
+                )
+            }
+            Spacer(Modifier.size(8.dp))
+            Text(entriedAt, style = MaterialTheme.typography.caption, modifier = Modifier.height(16.dp))
+        }
     }
 }
 
@@ -957,36 +996,36 @@ private fun FoodCardPreview() {
         Surface {
             Column(modifier = Modifier.padding(16.dp)) {
                 FoodCard(
-                    TodaysFoodModel(
+                    foodModel = TodaysFoodModel(
                         "",
                         FoodType.BREAKFAST,
                         "Egg Sandwich",
                         "fake_food.jpg",
                         15,
                         Date(1619289713000)
-                    ),
+                    )
                 )
                 Spacer(Modifier.size(8.dp))
                 FoodCard(
-                    TodaysFoodModel(
+                    foodModel = TodaysFoodModel(
                         "",
                         FoodType.BREAKFAST,
                         "Egg Sandwich",
                         "fake_food.jpg",
                         15,
                         Date(1619289713000)
-                    ),
+                    )
                 )
                 Spacer(Modifier.size(8.dp))
                 FoodCard(
-                    TodaysFoodModel(
+                    foodModel = TodaysFoodModel(
                         "",
                         FoodType.BREAKFAST,
                         "Egg Sandwich",
                         "fake_food.jpg",
                         15,
                         Date(1619289713000)
-                    ),
+                    )
                 )
             }
         }

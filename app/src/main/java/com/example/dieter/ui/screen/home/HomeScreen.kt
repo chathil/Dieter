@@ -291,7 +291,6 @@ fun HomeScreen(
     val bodyWeightEntries by homeViewModel.bodyWeightEntries.collectAsState()
     val nutrients by homeViewModel.nutrients.collectAsState()
     val calories by homeViewModel.calories.collectAsState()
-
     val loginState by homeViewModel.loginState.collectAsState()
     val linkDeviceState by homeViewModel.linkDeviceState.collectAsState()
     var expand by remember {
@@ -470,10 +469,19 @@ fun HomeScreen(
             }
         }
 
-        Row(modifier = Modifier.horizontalScroll(rememberScrollState()).height(232.dp)) {
+        Row(
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .height(232.dp)
+        ) {
             Spacer(Modifier.size(16.dp))
             bodyWeightEntries.forEach {
-                BodyWeightBar(weightModelSet = it)
+                BodyWeightBar(
+                    weightModelSet = it,
+                    onDelete = {
+                        homeViewModel.deleteBodyWeight(temporaryId, it)
+                    }
+                )
                 Spacer(Modifier.size(8.dp))
             }
             Spacer(Modifier.size(16.dp))
@@ -489,6 +497,7 @@ fun HomeScreen(
             FoodCard(
                 foodModel = it, deletable = true,
                 onDelete = {
+                    homeViewModel.deleteTodaysFood(temporaryId, it)
                 }
             )
             Spacer(Modifier.size(8.dp))
@@ -752,7 +761,11 @@ private fun BurnCaloriesButton(
 }
 
 @Composable
-private fun BodyWeightBar(weightModelSet: BodyWeightModel, modifier: Modifier = Modifier) {
+private fun BodyWeightBar(
+    modifier: Modifier = Modifier,
+    weightModelSet: BodyWeightModel,
+    onDelete: () -> Unit = {}
+) {
     val entriedAt = SimpleDateFormat(
         "dd/MM",
         Locale.UK
@@ -771,7 +784,10 @@ private fun BodyWeightBar(weightModelSet: BodyWeightModel, modifier: Modifier = 
 
     Column {
         IconButton(
-            onClick = { showDelete = false },
+            onClick = {
+                showDelete = false
+                onDelete()
+            },
             modifier
                 .width(46.dp)
                 .height(if (showDelete) 64.dp else 0.dp)
@@ -802,7 +818,11 @@ private fun BodyWeightBar(weightModelSet: BodyWeightModel, modifier: Modifier = 
                 )
             }
             Spacer(Modifier.size(8.dp))
-            Text(entriedAt, style = MaterialTheme.typography.caption, modifier = Modifier.height(16.dp))
+            Text(
+                entriedAt,
+                style = MaterialTheme.typography.caption,
+                modifier = Modifier.height(16.dp)
+            )
         }
     }
 }
@@ -972,17 +992,17 @@ fun BodyWeightEntryPreview() {
         Surface {
             Row {
                 Spacer(Modifier.size(8.dp))
-                BodyWeightBar(BodyWeightModel("", 50, 70, Date()))
+                BodyWeightBar(weightModelSet = BodyWeightModel("", 50, 70, Date()))
                 Spacer(Modifier.size(8.dp))
-                BodyWeightBar(BodyWeightModel("", 55, 70, Date()))
+                BodyWeightBar(weightModelSet = BodyWeightModel("", 55, 70, Date()))
                 Spacer(Modifier.size(8.dp))
-                BodyWeightBar(BodyWeightModel("", 60, 70, Date()))
+                BodyWeightBar(weightModelSet = BodyWeightModel("", 60, 70, Date()))
                 Spacer(Modifier.size(8.dp))
-                BodyWeightBar(BodyWeightModel("", 61, 70, Date()))
+                BodyWeightBar(weightModelSet = BodyWeightModel("", 61, 70, Date()))
                 Spacer(Modifier.size(8.dp))
-                BodyWeightBar(BodyWeightModel("", 67, 70, Date()))
+                BodyWeightBar(weightModelSet = BodyWeightModel("", 67, 70, Date()))
                 Spacer(Modifier.size(8.dp))
-                BodyWeightBar(BodyWeightModel("", 70, 70, Date()))
+                BodyWeightBar(weightModelSet = BodyWeightModel("", 70, 70, Date()))
                 Spacer(Modifier.size(8.dp))
             }
         }

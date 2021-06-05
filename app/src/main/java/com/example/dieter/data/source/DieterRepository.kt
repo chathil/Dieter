@@ -141,6 +141,36 @@ class DieterRepository @Inject constructor(
         }
     }
 
+    override fun deleteTodaysFood(userRepId: String, key: String) =
+        realtimeDatabase.deleteTodaysFood(userRepId, key).map {
+            DataState.Loading(null)
+            if (it.second == null) {
+                DataState.Success(true)
+            } else {
+                DataState.Error(it.second?.message ?: "Unknown Error")
+            }
+        }
+
+    override fun deleteTodaysWorkout(userRepId: String, key: String) =
+        realtimeDatabase.deleteTodaysWorkout(userRepId, key).map {
+            DataState.Loading(null)
+            if (it.second == null) {
+                DataState.Success(true)
+            } else {
+                DataState.Error(it.second?.message ?: "Unknown Error")
+            }
+        }
+
+    override fun deleteBodyWeights(userRepId: String, key: String) =
+        realtimeDatabase.deleteBodyWeight(userRepId, key).map {
+            DataState.Loading(null)
+            if (it.second == null) {
+                DataState.Success(true)
+            } else {
+                DataState.Error(it.second?.message ?: "Unknown Error")
+            }
+        }
+
     companion object {
         private val TAG = DieterRepository::class.java.simpleName
     }

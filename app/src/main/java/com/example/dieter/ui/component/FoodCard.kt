@@ -77,6 +77,7 @@ fun FoodCard(
     val sizePx = with(LocalDensity.current) { squareSize.toPx() }
     val anchors = mapOf(0f to 0, sizePx to 1) // Maps anchor points (in px) to states
     var showConfirmation by remember { mutableStateOf(false) }
+
     Box(
         modifier
             .background(MaterialTheme.colors.primary)
@@ -95,6 +96,7 @@ fun FoodCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
+                enabled = deletable and (swipeableState.offset.value.roundToInt() >= sizePx),
                 onClick = { showConfirmation = true },
                 modifier = Modifier
                     .size(64.dp)

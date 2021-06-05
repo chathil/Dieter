@@ -88,44 +88,42 @@ exports.onDeleteMeal = functions.database
     ("0" + (tomorrowDate.getMonth() + 1)).slice(-2) + "-" +
     tomorrowDate.getFullYear();
 
-    deletedNutrients.forEach((nutrient) => {
-      updatedNutrientsMap.set(nutrient.key, parseFloat(nutrient.val()));
-    });
+      deletedNutrients.forEach((nutrient) => {
+        updatedNutrientsMap.set(nutrient.key, parseFloat(nutrient.val()));
+      });
 
-    return userDailyRef.once("value", (children) => {
-        if (children.hasChild(todayDateString)) { 
-            updatedNutrientsMap.forEach((value, key) => {
-                if (children.child(todayDateString).child(key).exists) {
-                  const oldValue = children.child(todayDateString).child(key).val();
-                  if (key == "Energy") {
-                    if (Math.abs(value - oldValue) < 2000) {
-                      userDailyRef.parent.child("workouts")
-                          .child(tomorrowDateString).child("caloriesToBurn")
-                          .set(null);
-                    }
-                  }
-
-                  var newValue = 0
-                  if((oldValue - value) <= 0) {
-                      newValue = 0
-                  }else {
-                    newValue = oldValue - value
-                  }
-
-                  updatedNutrientsMap.set(key, newValue);
+      return userDailyRef.once("value", (children) => {
+        if (children.hasChild(todayDateString)) {
+          updatedNutrientsMap.forEach((value, key) => {
+            if (children.child(todayDateString).child(key).exists) {
+              const oldValue = children.child(todayDateString).child(key).val();
+              if (key == "Energy") {
+                if (Math.abs(value - oldValue) < 2000) {
+                  userDailyRef.parent.child("workouts")
+                      .child(tomorrowDateString).child("caloriesToBurn")
+                      .set(null);
                 }
-              });
-         }
+              }
 
-         const formatted = Array.from(updatedNutrientsMap)
+              let newValue = 0;
+              if ((oldValue - value) <= 0) {
+                newValue = 0;
+              } else {
+                newValue = oldValue - value;
+              }
+
+              updatedNutrientsMap.set(key, newValue);
+            }
+          });
+        }
+
+        const formatted = Array.from(updatedNutrientsMap)
             .reduce((obj, [key, value]) => {
               obj[key] = value;
               return obj;
             }, {});
         return userDailyRef.child(todayDateString).set(formatted);
-
-    })
-
+      });
     });
 
 exports.onBurnedCalories = functions.database
@@ -138,8 +136,7 @@ exports.onBurnedCalories = functions.database
       ("0" + (todayDate.getMonth() + 1)).slice(-2) + "-" +
       todayDate.getFullYear();
 
-      cons
-      t toAdd = snapshot.val();
+      const toAdd = snapshot.val();
 
       const userDailyRef = snapshot.ref
           .parent.parent.parent.parent
@@ -163,10 +160,10 @@ exports.onBurnedCalories = functions.database
       });
     });
 
-    exports.onUnBurnCalories = functions.database
+exports.onUnBurnCalories = functions.database
     .ref("user_workouts/{userRepId}/{workoutId}/totalCaloriesBurned")
     .onDelete((snapshot, context) => {
-        const userRepId = context.params.userRepId;
+      const userRepId = context.params.userRepId;
 
 
       const todayDate = convertTZ(new Date(), "Asia/Jakarta");
@@ -180,17 +177,17 @@ exports.onBurnedCalories = functions.database
           .parent.parent.parent.parent
           .child("user_daily/" + userRepId + "/workouts");
 
-    return userDailyRef.once("value", (children) => {
+      return userDailyRef.once("value", (children) => {
         if (children.hasChild(todayDateString)) {
           if (children.child(todayDateString).child("caloriesBurned").exists) {
             const oldValue = children.child(todayDateString)
                 .child("caloriesBurned").val();
-                var newValue = 0
-                if(oldValue - toDeduct <= 0) {
-                    newValue = 0
-                } else {
-                    newValue = oldValue - toDeduct
-                }
+            let newValue = 0;
+            if (oldValue - toDeduct <= 0) {
+              newValue = 0;
+            } else {
+              newValue = oldValue - toDeduct;
+            }
             return userDailyRef.child(todayDateString)
                 .child("caloriesBurned").set(newValue);
           } else {
@@ -202,5 +199,4 @@ exports.onBurnedCalories = functions.database
               .child("caloriesBurned").set(0);
         }
       });
-
-    })
+    });

@@ -77,18 +77,14 @@ class CalculateViewModel @Inject constructor(
      */
     private fun review() {
         _summaryState.value = emptyMap()
-        _state.value.forEach { (t, u) ->
+        _state.value.forEach { (_, u) ->
             if (u is DataState.Success) {
                 u.data.totalNutrients.forEach { (v, w) ->
                     if (_summaryState.value.containsKey(v)) {
                         val current = _summaryState.value[v]!!
-                        _summaryState.value += Pair(v, current + (w ?: .01f))
+                        _summaryState.value += Pair(v, current + (w ?: 0f))
                     } else {
-                        if (w != null) {
-                            if (w > 0f) {
-                                _summaryState.value += Pair(v, w)
-                            }
-                        }
+                        _summaryState.value += Pair(v, w)
                     }
                 }
             }

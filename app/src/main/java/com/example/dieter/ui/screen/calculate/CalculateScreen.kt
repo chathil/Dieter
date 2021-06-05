@@ -254,7 +254,6 @@ private fun NutrientList(
 ) {
     var expand by remember { mutableStateOf(false) }
 
-    // val mapped = nutrients.map { it.name to it }.toMap()
     val top5 = mutableMapOf<NutrientType, Float?>()
     nutrients[NutrientType.ENERC_KCAL]?.let { top5.put(NutrientType.ENERC_KCAL, it) }
     nutrients[NutrientType.CHOCDF]?.let { top5.put(NutrientType.CHOCDF, it) }

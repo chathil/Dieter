@@ -293,7 +293,7 @@ private fun CalorieBar(
     toAdd: Float,
 ) {
     var formattedValue by remember { mutableStateOf("") }
-    var burnToBurn = Pair(1, 1)
+    var burnToBurn = Pair(0, 0)
 
     when (burnCalorieModel) {
         is DataState.Success -> {
@@ -303,7 +303,7 @@ private fun CalorieBar(
         }
         is DataState.Loading -> formattedValue = "Loading"
         is DataState.Error -> formattedValue = "Somethings wrong"
-        is DataState.Empty -> formattedValue = "Nothing for now"
+        is DataState.Empty -> formattedValue = "-/-"
     }
     Button(
         onClick = { /*TODO*/ },
@@ -320,7 +320,12 @@ private fun CalorieBar(
                 .fillMaxSize(),
             contentAlignment = Alignment.CenterStart
         ) {
-            val animToAdd: Float by animateFloatAsState(targetValue = (burnToBurn.first + toAdd) / burnToBurn.second)
+            val animProgress = if (burnToBurn.second == 0) {
+                (burnToBurn.first + toAdd) / 1f
+            } else {
+                (burnToBurn.first + toAdd) / burnToBurn.second
+            }
+            val animToAdd: Float by animateFloatAsState(targetValue = animProgress)
             Spacer(
                 modifier = Modifier
                     .fillMaxWidth(animToAdd)
@@ -331,10 +336,14 @@ private fun CalorieBar(
                     )
                     .clip(DieterShapes.medium)
             )
-
+            val progress = if (burnToBurn.second == 0) {
+                burnToBurn.first / 1f
+            } else {
+                burnToBurn.first / burnToBurn.second.toFloat()
+            }
             Spacer(
                 modifier = Modifier
-                    .fillMaxWidth(burnToBurn.first / burnToBurn.second.toFloat())
+                    .fillMaxWidth(progress)
                     .fillMaxHeight()
                     .background(
                         GreenPrimary,

@@ -23,7 +23,7 @@ fun SaveFoodModel.asRequest(): SaveFoodRequest {
     val ings = ingredients.map {
         SaveFoodRequest.SaveIngredientRequest(
             it.key.label,
-            it.value?.totalNutrients?.map { n -> n.key.nutrientName to if (n.value == 0f) .01f else n.value } // TODO: Avoid this trick
+            it.value?.totalNutrients?.map { n -> n.key.nutrientName to n.value } // TODO: Avoid this trick
                 ?.toMap() ?: emptyMap()
         )
     }

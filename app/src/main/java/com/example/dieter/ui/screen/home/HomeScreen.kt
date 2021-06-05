@@ -260,8 +260,8 @@ fun HomeAccountGroup(
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun HomeScreen(
-    homeViewModel: HomeViewModel = viewModel(),
     modifier: Modifier = Modifier,
+    homeViewModel: HomeViewModel = viewModel(),
     history: () -> Unit = {},
     burnCalories: () -> Unit = {},
     setGoal: () -> Unit = {},
@@ -535,9 +535,12 @@ private fun TrialBanner(modifier: Modifier = Modifier, onClose: () -> Unit = {})
                     .background(MaterialTheme.colors.primary.copy(AlphaReallyTransparent))
                     .padding(16.dp)
             ) {
-                Text("Get premium free for a week", style = MaterialTheme.typography.subtitle2)
                 Text(
-                    "Just $9.99/month after. Cancel anytime",
+                    "2-months trials activated",
+                    style = MaterialTheme.typography.subtitle2
+                )
+                Text(
+                    "Enjoy our premium features",
                     style = MaterialTheme.typography.body2
                 )
             }
@@ -698,9 +701,12 @@ private fun BurnCaloriesButton(
                 .fillMaxSize(),
             contentAlignment = Alignment.CenterStart
         ) {
+            val progress = if (burnToBurn.second <= 0) {
+                burnToBurn.first / 1f
+            } else burnToBurn.first / burnToBurn.second.toFloat()
             Spacer(
                 modifier = Modifier
-                    .fillMaxWidth(burnToBurn.first / burnToBurn.second.toFloat())
+                    .fillMaxWidth(progress)
                     .fillMaxHeight()
                     .background(
                         GreenPrimary,
@@ -749,8 +755,11 @@ private fun BodyWeightBar(weightModelSet: BodyWeightModel, modifier: Modifier = 
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(modifier = Modifier.height(202.dp), contentAlignment = Alignment.BottomCenter) {
+            val progress = if (weightModelSet.target <= 0) {
+                weightModelSet.current / 1f
+            } else weightModelSet.current / weightModelSet.target.toFloat()
             DieterVerticalBarChart(
-                progress = (weightModelSet.current / weightModelSet.target.toFloat()),
+                progress = (progress),
                 label = weightModelSet.current.toString(),
             )
         }

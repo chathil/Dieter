@@ -29,6 +29,9 @@ fun NutrientBar(nutrient: NutrientModel, modifier: Modifier = Modifier) {
             Text(nutrient.name)
             Text("${nutrient.current.roundTo(1)}/${nutrient.of} ${nutrient.unit}")
         }
-        DieterProgressBar(progress = (nutrient.current / nutrient.of.toFloat()))
+        val progress = if (nutrient.of <= 0) {
+            nutrient.current / 1f
+        } else nutrient.current / nutrient.of.toFloat()
+        DieterProgressBar(progress = progress)
     }
 }

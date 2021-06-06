@@ -63,7 +63,6 @@ class MainActivity : ComponentActivity() {
                     is DataState.Success -> {
                         DieterApp(
                             appState = appState,
-                            userRepId = (userRepId as DataState.Success<String>).data,
                             showWelcomeInitially = !isWelcomeShown,
                             welcomeShown = {
                                 appViewModel.isWelcomeShown(true)

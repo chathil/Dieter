@@ -82,16 +82,33 @@ class DieterRealtimeDatabase @Inject constructor(
 
     fun linkUserDevice(userId: String, temporaryId: String) = callbackFlow {
         offer(DataState.Loading(null))
-        rootRef.child("user_devices").child(userId).setValue(temporaryId)
-            .addOnSuccessListener {
-                if (!isClosedForSend)
-                    offer(DataState.Success(true))
-                close()
-            }.addOnFailureListener {
-                if (!isClosedForSend)
-                    offer(DataState.Error(it.message!!))
-                close(it)
+        rootRef.child("user_devices").child(userId).get().addOnSuccessListener {
+            if (!isClosedForSend) {
+                if (it.exists()) {
+                    offer(DataState.Success(it.getValue<String>()))
+                    Log.d(TAG, "linkUserDevice: exist ${it.getValue<String>()}")
+                } else {
+                    it.ref.setValue(temporaryId)
+                    offer(DataState.Success(temporaryId))
+                    Log.d(TAG, "linkUserDevice: Doesnt")
+                }
             }
+            close()
+        }.addOnFailureListener {
+            if (!isClosedForSend)
+                offer(DataState.Error(it.message!!))
+            close(it)
+        }
+        // rootRef.child("user_devices").child(userId).setValue(temporaryId)
+        //     .addOnSuccessListener {
+        //         if (!isClosedForSend)
+        //             offer(DataState.Success("true"))
+        //         close()
+        //     }.addOnFailureListener {
+        //         if (!isClosedForSend)
+        //             offer(DataState.Error(it.message!!))
+        //         close(it)
+        //     }
         awaitClose {
             Log.e(TAG, "setToken: CLOSE")
         }

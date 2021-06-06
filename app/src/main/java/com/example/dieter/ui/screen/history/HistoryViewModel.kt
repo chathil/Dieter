@@ -36,6 +36,8 @@ class HistoryViewModel @Inject constructor(
     val todaysFood: StateFlow<List<TodaysFoodModel>>
         get() = _todaysFood
 
+    private var userRepId = ""
+
     init {
         viewModelScope.launch {
             val nowString = SimpleDateFormat(
@@ -43,13 +45,14 @@ class HistoryViewModel @Inject constructor(
                 Locale.UK
             ).format(java.util.Date(System.currentTimeMillis()))
             userRepId()!!.collect { token ->
-                todayNutrient(token!!, nowString)
-                todayFood(token!!, nowString)
+                userRepId = token!!
+                todayNutrient(nowString)
+                todayFood(nowString)
             }
         }
     }
 
-    fun todayFood(userRepId: String, date: String) {
+    fun todayFood(date: String) {
         viewModelScope.launch {
             dieterRepository.todayFood(userRepId, date).collect {
                 when (it) {
@@ -61,7 +64,7 @@ class HistoryViewModel @Inject constructor(
         }
     }
 
-    fun todayNutrient(userRepId: String, date: String) {
+    fun todayNutrient(date: String) {
         val mapped = NutrientType.values().map { it.nutrientName to it }.toMap()
         viewModelScope.launch {
             dieterRepository.todayNutrient(userRepId, date).collect {

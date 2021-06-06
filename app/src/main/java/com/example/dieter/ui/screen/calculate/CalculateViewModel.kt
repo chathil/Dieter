@@ -1,7 +1,10 @@
 package com.example.dieter.ui.screen.calculate
 
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.dieter.USER_REP_ID
+import com.example.dieter.application.DieterApplication
 import com.example.dieter.data.source.DieterRepository
 import com.example.dieter.data.source.EdamamRepository
 import com.example.dieter.data.source.domain.DetailIngredientModel
@@ -9,11 +12,13 @@ import com.example.dieter.data.source.domain.FoodType
 import com.example.dieter.data.source.domain.IngredientModel
 import com.example.dieter.data.source.domain.NutrientType
 import com.example.dieter.data.source.domain.SaveFoodModel
+import com.example.dieter.dataStore
 import com.example.dieter.vo.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,6 +28,7 @@ class CalculateViewModel @Inject constructor(
     private val dieterRepository: DieterRepository,
 ) : ViewModel() {
 
+    private val userRepKey = stringPreferencesKey(USER_REP_ID)
     private val _summaryState = MutableStateFlow<Map<NutrientType, Float?>>(emptyMap())
 
     val summaryState: StateFlow<Map<NutrientType, Float?>>
@@ -40,11 +46,19 @@ class CalculateViewModel @Inject constructor(
 
     private val _cautions = MutableStateFlow(emptySet<String>())
     val cautions: StateFlow<Set<String>> get() = _cautions
+    private var userRepId = ""
+    init {
+        viewModelScope.launch {
+            userRepId()!!.collect { token ->
+                userRepId = token!!
+            }
+        }
+    }
 
     /**
      * Add summary to firebase
      */
-    fun saveToFirebase(userRepId: String, name: String, type: FoodType) {
+    fun saveToFirebase(name: String, type: FoodType) {
         val summary = SaveFoodModel.SaveSummaryModel(name, type, summaryState.value)
         val cautions = emptySet<String>().toMutableSet()
         val dietLabels = emptySet<String>().toMutableSet()
@@ -107,6 +121,11 @@ class CalculateViewModel @Inject constructor(
             }
         }
     }
+
+    private fun userRepId() = DieterApplication.applicationContext()?.dataStore?.data
+        ?.map { preferences ->
+            preferences[userRepKey]
+        }
 
     companion object {
         val TAG = CalculateViewModel::class.java.simpleName

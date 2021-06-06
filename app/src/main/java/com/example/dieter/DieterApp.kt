@@ -9,7 +9,6 @@ import com.google.accompanist.insets.ProvideWindowInsets
 
 @Composable
 fun DieterApp(
-    userRepId: String,
     appState: DieterAppState,
     showWelcomeInitially: Boolean,
     welcomeShown: () -> Unit,
@@ -22,7 +21,6 @@ fun DieterApp(
 
             Surface(color = MaterialTheme.colors.background) {
                 NavGraph(
-                    userRepId = userRepId,
                     appState = appState,
                     showWelcomeInitially = showWelcomeInitially,
                     welcomeShown = welcomeShown,

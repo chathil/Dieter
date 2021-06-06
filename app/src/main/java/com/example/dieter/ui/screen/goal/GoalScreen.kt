@@ -68,8 +68,7 @@ import kotlinx.coroutines.launch
 fun GoalScreen(
     viewModel: GoalViewModel,
     goUp: () -> Unit = {},
-    goHome: () -> Unit = {},
-    userRepId: String
+    goHome: () -> Unit = {}
 ) {
     val pagerState = rememberPagerState(pageCount = 2)
     val heightState = remember { HeightState() }
@@ -127,7 +126,6 @@ fun GoalScreen(
                     }
                     1 -> selectedGoal.value?.let {
                         viewModel.save(
-                            userRepId = userRepId,
                             selectedGoal = it,
                             age = ageState.text.toInt(),
                             isMale = isMale ?: true,

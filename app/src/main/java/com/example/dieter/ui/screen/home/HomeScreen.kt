@@ -128,7 +128,7 @@ fun HomeAccountGroup(
     history: () -> Unit = {},
     burnCalories: () -> Unit = {},
     setGoal: () -> Unit = {},
-    temporaryId: String
+    onLogout: () -> Unit
 ) {
     var toShow by remember {
         mutableStateOf(MainDestinations.HOME_ROUTE)
@@ -193,7 +193,6 @@ fun HomeAccountGroup(
                 if (screen == MainDestinations.HOME_ROUTE) {
                     HomeScreen(
                         homeViewModel = homeViewModel,
-                        temporaryId = temporaryId,
                         history = history,
                         burnCalories = burnCalories,
                         goal = goalModel,
@@ -229,11 +228,7 @@ fun HomeAccountGroup(
                                 scaffoldState.snackbarHostState.showSnackbar("Not yet implemented")
                             }
                         },
-                        backToWelcome = {
-                            snackbarCoroutineScope.launch {
-                                scaffoldState.snackbarHostState.showSnackbar("Not yet implemented")
-                            }
-                        }
+                        backToWelcome = onLogout
                     )
                 }
             }
@@ -272,7 +267,6 @@ fun HomeScreen(
     signInDone: () -> Unit = {},
     syncDone: () -> Unit = {},
     error: () -> Unit = {},
-    temporaryId: String,
     goal: GoalModel?,
     showGoalBanner: Boolean,
     onGoalClose: () -> Unit = {},
@@ -292,7 +286,7 @@ fun HomeScreen(
     val nutrients by homeViewModel.nutrients.collectAsState()
     val calories by homeViewModel.calories.collectAsState()
     val loginState by homeViewModel.loginState.collectAsState()
-    val linkDeviceState by homeViewModel.linkDeviceState.collectAsState()
+    val linkDeviceSuccessState by homeViewModel.linkDeviceSuccess.collectAsState()
     var expand by remember {
         mutableStateOf(false)
     }
@@ -303,7 +297,7 @@ fun HomeScreen(
     when (loginState) {
         is DataState.Success -> {
             val uid = (loginState as DataState.Success<FirebaseUser>).data.uid
-            homeViewModel.linkUserDevice(uid, temporaryId)
+            homeViewModel.linkUserDevice(uid)
             signInDone()
             showSignInBanner = false
         }
@@ -316,17 +310,8 @@ fun HomeScreen(
         }
     }
 
-    when (linkDeviceState) {
-        is DataState.Success -> {
-            syncDone()
-        }
-        is DataState.Error -> {
-            error()
-        }
-        is DataState.Loading -> {
-        }
-        is DataState.Empty -> {
-        }
+    if (linkDeviceSuccessState) {
+        syncDone()
     }
 
     Column(
@@ -447,7 +432,6 @@ fun HomeScreen(
                     OutlinedButton(
                         onClick = {
                             homeViewModel.newBodyWeight(
-                                temporaryId,
                                 SetBodyWeightModel(
                                     bodyWeightState.text.toInt(),
                                     goal?.targetWeight ?: 1, // TODO: comeback to this later
@@ -479,7 +463,7 @@ fun HomeScreen(
                 BodyWeightBar(
                     weightModelSet = it,
                     onDelete = {
-                        homeViewModel.deleteBodyWeight(temporaryId, it)
+                        homeViewModel.deleteBodyWeight(it)
                     }
                 )
                 Spacer(Modifier.size(8.dp))
@@ -497,7 +481,7 @@ fun HomeScreen(
             FoodCard(
                 foodModel = it, deletable = true,
                 onDelete = {
-                    homeViewModel.deleteTodaysFood(temporaryId, it)
+                    homeViewModel.deleteTodaysFood(it)
                 }
             )
             Spacer(Modifier.size(8.dp))

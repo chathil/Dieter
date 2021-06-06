@@ -44,8 +44,7 @@ import com.google.accompanist.insets.statusBarsPadding
 @Composable
 fun HistoryScreen(
     viewModel: HistoryViewModel,
-    goUp: () -> Unit = {},
-    userRepId: String
+    goUp: () -> Unit = {}
 ) {
 
     val nutrients by viewModel.nutrients.collectAsState()
@@ -76,8 +75,8 @@ fun HistoryScreen(
             Spacer(Modifier.size(16.dp))
         }
         CustomCalendarView {
-            viewModel.todayNutrient(userRepId, it)
-            viewModel.todayFood(userRepId, it)
+            viewModel.todayNutrient(it)
+            viewModel.todayFood(it)
         }
         Spacer(modifier = Modifier.size(16.dp))
         HistorySection(

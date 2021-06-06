@@ -14,6 +14,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -73,6 +74,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -387,14 +389,27 @@ fun HomeScreen(
                     Spacer(Modifier.size(12.dp))
                 }
             } else {
-                Text("Nothing for now")
+                Image(
+                    painter = painterResource(id = R.drawable.healthy_food),
+                    contentDescription = "eat",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(212.dp)
+                )
+                Text(
+                    "Tap the middle button of the floating bar to start",
+                    style = MaterialTheme.typography.body1,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
             }
 
-            IconButton(onClick = { expand = !expand }) {
-                Icon(
-                    imageVector = if (expand) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                    contentDescription = "expand"
-                )
+            if (nutrients.isNotEmpty()) {
+                IconButton(onClick = { expand = !expand }) {
+                    Icon(
+                        imageVector = if (expand) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        contentDescription = "expand"
+                    )
+                }
             }
         }
 
@@ -416,7 +431,7 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth(.25f)
                 ) {
                     Icon(
-                        if (showWeightEntry) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        if (showWeightEntry or bodyWeightEntries.isEmpty()) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
                         contentDescription = "new entry"
                     )
                 }
@@ -425,7 +440,7 @@ fun HomeScreen(
                 Modifier
                     .padding(bottom = 12.dp)
             )
-            if (showWeightEntry) {
+            if (showWeightEntry or bodyWeightEntries.isEmpty()) {
                 Row(Modifier.fillMaxWidth()) {
                     BodyWeight(bodyWeightState = bodyWeightState)
                     Spacer(Modifier.size(8.dp))
@@ -453,38 +468,48 @@ fun HomeScreen(
             }
         }
 
-        Row(
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-                .height(232.dp)
-        ) {
-            Spacer(Modifier.size(16.dp))
-            bodyWeightEntries.forEach {
-                BodyWeightBar(
-                    weightModelSet = it,
+        if (bodyWeightEntries.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .height(232.dp)
+            ) {
+                Spacer(Modifier.size(16.dp))
+                bodyWeightEntries.forEach {
+                    BodyWeightBar(
+                        weightModelSet = it,
+                        onDelete = {
+                            homeViewModel.deleteBodyWeight(it)
+                        }
+                    )
+                    Spacer(Modifier.size(8.dp))
+                }
+                Spacer(Modifier.size(16.dp))
+            }
+        } else {
+            Text(
+                "Nothings here, start by adding it.",
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
+        Spacer(Modifier.size(12.dp))
+        if (todaysFoods.isNotEmpty()) {
+            HomeSection(
+                title = "Food eaten today",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            )
+            todaysFoods.forEach {
+                FoodCard(
+                    foodModel = it, deletable = true,
                     onDelete = {
-                        homeViewModel.deleteBodyWeight(it)
+                        homeViewModel.deleteTodaysFood(it)
                     }
                 )
                 Spacer(Modifier.size(8.dp))
             }
-            Spacer(Modifier.size(16.dp))
-        }
-        Spacer(Modifier.size(12.dp))
-        HomeSection(
-            title = "Food eaten today",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        )
-        todaysFoods.forEach {
-            FoodCard(
-                foodModel = it, deletable = true,
-                onDelete = {
-                    homeViewModel.deleteTodaysFood(it)
-                }
-            )
-            Spacer(Modifier.size(8.dp))
         }
         Spacer(Modifier.size(216.dp))
     }

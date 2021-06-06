@@ -51,7 +51,6 @@ object MainDestinations {
 @Composable
 fun NavGraph(
     modifier: Modifier = Modifier,
-    userRepId: String,
     appState: DieterAppState,
     finishActivity: () -> Unit = {},
     welcomeShown: () -> Unit = {},
@@ -68,11 +67,14 @@ fun NavGraph(
     ) {
 
         composable(MainDestinations.WELCOME_ROUTE) {
+            // Intercept back to Where-ever: make it finish the activity
+            BackHandler {
+                finishActivity()
+            }
             val welcomeViewModel: WelcomeViewModel =
                 viewModel(factory = HiltViewModelFactory(LocalContext.current, it))
             WelcomeScreen(
                 welcomeViewModel = welcomeViewModel,
-                temporaryId = userRepId,
                 welcomeFinished = {
                     actions.welcomeFinished()
                 },
@@ -95,7 +97,7 @@ fun NavGraph(
             HomeAccountGroup(
                 homeViewModel = homeViewModel,
                 accountViewModel = accountViewModel,
-                temporaryId = userRepId,
+                onLogout = actions.toWelcome,
                 history = actions.history,
                 burnCalories = actions.workout,
                 navigateToCalculateNutrients = actions.addIngredients,
@@ -139,7 +141,6 @@ fun NavGraph(
             CalculateScreen(
                 viewModel = viewModel,
                 appState = appState,
-                userRepId = userRepId,
                 goUp = actions.upPress,
                 save = {
                     actions.toHome()
@@ -155,7 +156,6 @@ fun NavGraph(
             )
             GoalScreen(
                 viewModel = viewModel,
-                userRepId = userRepId,
                 goUp = actions.upPress,
                 goHome = actions.toHome
             )
@@ -167,7 +167,7 @@ fun NavGraph(
                     LocalContext.current, it
                 )
             )
-            HistoryScreen(viewModel = viewModel, userRepId = userRepId, goUp = actions.toHome)
+            HistoryScreen(viewModel = viewModel, goUp = actions.toHome)
         }
 
         composable(MainDestinations.WORKOUT_ROUTE) {
@@ -212,6 +212,9 @@ fun NavGraph(
 class MainActions(navController: NavHostController) {
     val welcomeFinished: () -> Unit = {
         navController.popBackStack()
+    }
+    val toWelcome: () -> Unit = {
+        navController.navigate(MainDestinations.WELCOME_ROUTE)
     }
     val toHome: () -> Unit = {
         navController.navigate(MainDestinations.HOME_ROUTE)

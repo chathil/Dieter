@@ -1,6 +1,7 @@
 package com.example.dieter.ui.screen.home
 
 import android.util.Log
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -64,14 +65,17 @@ class HomeViewModel @Inject constructor(
     val loginState: StateFlow<DataState<FirebaseUser>>
         get() = _loginState
 
-    private val _linkDeviceState = MutableStateFlow<DataState<Boolean>>(DataState.Empty)
-    val linkDeviceState: StateFlow<DataState<Boolean>>
-        get() = _linkDeviceState
+    private val _linkDeviceSuccess = MutableStateFlow(false)
+    val linkDeviceSuccess: StateFlow<Boolean>
+        get() = _linkDeviceSuccess
+
+    private var userRepId = ""
 
     init {
         viewModelScope.launch {
             userRepId()!!.collect { token ->
-                goal(token!!)
+                userRepId = token!!
+                goal(token)
                 todayNutrient(token)
                 todayFood(token)
                 bodyWeights(token)
@@ -88,11 +92,31 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun linkUserDevice(userId: String, temporaryId: String) {
+    fun linkUserDevice(userId: String) {
         viewModelScope.launch {
-            dieterRepository.linkUserDevice(userId, temporaryId).collect {
-                _linkDeviceState.value = it
+            dieterRepository.linkUserDevice(userId, userRepId).collect {
+                when (it) {
+                    is DataState.Success -> {
+                        it.data?.let {
+                            it1 ->
+                            userRepId(it1)
+                            _linkDeviceSuccess.value = true
+                        }
+                    }
+                    is DataState.Error -> {
+                        _error.value = true
+                        Log.e(TAG, "linkUserDevice: ${ it.exception }")
+                    }
+                    is DataState.Loading -> {}
+                    is DataState.Empty -> {}
+                }
             }
+        }
+    }
+
+    private suspend fun userRepId(id: String) {
+        DieterApplication.applicationContext()?.dataStore?.edit { values ->
+            values[userRepKey] = id
         }
     }
 
@@ -139,13 +163,12 @@ class HomeViewModel @Inject constructor(
     fun goal(userRepId: String) {
         viewModelScope.launch {
             dieterRepository.goal(userRepId).collect {
-                Log.d(TAG, "goal: $it")
                 _goal.value = it
             }
         }
     }
 
-    fun newBodyWeight(userRepId: String, data: SetBodyWeightModel) {
+    fun newBodyWeight(data: SetBodyWeightModel) {
         viewModelScope.launch {
             dieterRepository.newBodyWeight(userRepId, data).collect {
                 Log.d(TAG, "newBodyWeight: $it")
@@ -183,7 +206,7 @@ class HomeViewModel @Inject constructor(
             preferences[userRepKey]
         }
 
-    fun deleteBodyWeight(userRepId: String, weightModel: BodyWeightModel) {
+    fun deleteBodyWeight(weightModel: BodyWeightModel) {
         _bodyWeightEntries.value -= weightModel
         viewModelScope.launch {
             dieterRepository.deleteBodyWeights(userRepId, weightModel.id).collect {
@@ -197,11 +220,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun deleteTodaysFood(userRepId: String, food: TodaysFoodModel) {
+    fun deleteTodaysFood(food: TodaysFoodModel) {
         _todaysFood.value -= food
         viewModelScope.launch {
             dieterRepository.deleteTodaysFood(userRepId, food.id).collect {
-                Log.d(TAG, "deleteTodaysFood: $it")
                 when (it) {
                     is DataState.Success -> todayFood(userRepId)
                     is DataState.Error -> _error.value = true

@@ -75,8 +75,7 @@ import kotlinx.coroutines.launch
 fun WelcomeScreen(
     welcomeViewModel: WelcomeViewModel = viewModel(),
     welcomeFinished: () -> Unit,
-    navigateToHome: () -> Unit,
-    temporaryId: String
+    navigateToHome: () -> Unit
 ) {
     LocalSysUiController.current.setStatusBarColor(
         MaterialTheme.colors.background.copy(
@@ -124,14 +123,19 @@ fun WelcomeScreen(
                 when (loginState) {
                     is DataState.Success -> {
                         scope.launch {
-                            welcomeViewModel.linkUserDevice(
-                                (loginState as DataState.Success<FirebaseUser>).data.uid,
-                                temporaryId
-                            ).collect { isAdded ->
-                                when (isAdded) {
-                                    is DataState.Success -> navigateToHome()
-                                    is DataState.Error -> errorState = true
-                                    else -> {
+                            welcomeViewModel.userRepId()!!.collect { token ->
+                                welcomeViewModel.linkUserDevice(
+                                    (loginState as DataState.Success<FirebaseUser>).data.uid,
+                                    token!!
+                                ).collect { isAdded ->
+                                    when (isAdded) {
+                                        is DataState.Success -> {
+                                            isAdded.data?.let { it1 -> welcomeViewModel.userRepId(it1) }
+                                            navigateToHome()
+                                        }
+                                        is DataState.Error -> errorState = true
+                                        else -> {
+                                        }
                                     }
                                 }
                             }

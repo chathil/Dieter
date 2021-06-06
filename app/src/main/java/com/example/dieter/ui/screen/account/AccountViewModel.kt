@@ -1,5 +1,6 @@
 package com.example.dieter.ui.screen.account
 
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,6 +9,7 @@ import com.example.dieter.application.DieterApplication
 import com.example.dieter.data.source.DieterRepository
 import com.example.dieter.data.source.domain.GoalModel
 import com.example.dieter.dataStore
+import com.example.dieter.utils.FirebaseIDGenerator
 import com.example.dieter.vo.DataState
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -28,6 +30,9 @@ class AccountViewModel @Inject constructor(private val dieterRepository: DieterR
     val goal: StateFlow<DataState<GoalModel?>>
         get() = _goal
 
+    private val _signOutState = MutableStateFlow(false)
+    val signOutState: StateFlow<Boolean> get() = _signOutState
+
     init {
         viewModelScope.launch {
             userRepId()!!.collect { token ->
@@ -47,6 +52,16 @@ class AccountViewModel @Inject constructor(private val dieterRepository: DieterR
     fun signOut() {
         // TODO: this won't work properly until we can check if the user already have a rep id.
         Firebase.auth.signOut()
+        viewModelScope.launch {
+            newUserRepId()
+            _signOutState.value = true
+        }
+    }
+
+    private suspend fun newUserRepId() {
+        DieterApplication.applicationContext()?.dataStore?.edit { values ->
+            values[userRepKey] = FirebaseIDGenerator.generateId()
+        }
     }
 
     private fun userRepId() = DieterApplication.applicationContext()?.dataStore?.data

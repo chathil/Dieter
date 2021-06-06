@@ -68,8 +68,7 @@ fun CalculateScreen(
     viewModel: CalculateViewModel,
     goUp: () -> Unit = {},
     save: () -> Unit = {},
-    appState: DieterAppState,
-    userRepId: String
+    appState: DieterAppState
 ) {
     val mealNameState = remember { MealNameState() }
     var foodType by remember { mutableStateOf<FoodType?>(null) }
@@ -209,7 +208,7 @@ fun CalculateScreen(
             modifier = Modifier.padding(bottom = 36.dp),
             enabled = (foodType != null) && mealNameState.text.isNotEmpty() && summary.isNotEmpty(),
             onClick = {
-                viewModel.saveToFirebase(userRepId, mealNameState.text, foodType!!)
+                viewModel.saveToFirebase(mealNameState.text, foodType!!)
             }
         )
     }

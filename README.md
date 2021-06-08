@@ -9,13 +9,37 @@ Dieter - Future cool app tagline
 # Getting Started
 This project use Jetpack Compose, Android’s modern toolkit for building native UI. Jetpack Compose is currently in beta and only works with Canary Build of Android Studio.
 - Clone this repository and open it in the latest [Android Studio (Canary build)](https://developer.android.com/studio/preview).
-- Get the `google-services.json` file that I've sent in Discord
-- Place the file in the `app` directory 
+- Get the `google-services.json` file that I've sent in Discord/ or create another one.
+- Place the file in the `app` directory
+- Create a file called `secret.properties` in this project root dir and copy, paste and replace what's needed
+    ```groovy
+    EDAMAM_API_KEY="YOUR_EDAMAM_API_KEY"
+    EDAMAM_APP_ID="YOUR EDAMAM APP ID"
+    EMULATE_SERVER=false // boolean depends if you want to emulate firebase locally or not
+    ```
 - You can't commit directly, therefore you have to fork this repository and submit a pull request.
+
+# Tutorial
+- When you open the app for the first time, you'll be greeted with welcome screen. You can skip it by tapping <b>Skip</b> button, or you can go to the next slide by sliding it or tap the next until you finally reach the third page where you can sign in.
+- Then you'll get to the home screen. Tap the ![eat](https://raw.githubusercontent.com/google/material-design-icons/master/png/maps/restaurant_menu/materialicons/18dp/2x/baseline_restaurant_menu_black_18dp.png) icon to take picture. If all ingredients are detected tap next, otherwise add them manually by tapping the search icon.
+- Next you'll see summary, when you're done reading it tap <b>Save</b>
+- You'll be back to the home screen wait about 2 seconds, and you will see the result.
+- You should also see burn calories button, where you can burn calories if you want to. But since you just started using the app you'll see something like `-\-` on the button. that is because we don't have enough information to recommend how much calories you should burn. 
+- Keep using the app so we can get to know you better and provide the best recommendations.
 
 # Screenshots
 
 <img src="screenshots/welcome1.jpg" width="260">&emsp;<img src="screenshots/preview.gif" width="247">
+
+# Measurement Units
+(will be translated to English and put into the app soon...)
+
+| Ingredients   | Familiar units |
+| ------------- | ------------- |
+| Rice  | 1sdm : 15g  |
+| Egg  | 1butir : 60g  |
+| Tempeh  | 1buah segitiga : 20gr <br> 1buah sedang : 50gr <br> 1buah kecil : 25gr  |
+| Tofu  | 1potong kecil : 20gr <br> 1potong sedang : 40gr <br>1potong besar : 80gr <br>1buah kecil : 30gr <br> 1buah besar : 40gr  |
 
 # Code formatting
 The CI uses [Spotless](https://github.com/diffplug/spotless) to check if your code is formatted correctly and contains the right licenses.
